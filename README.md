@@ -66,9 +66,6 @@ dump($response);
       "accuracy": 1
       "accuracy_type": "rooftop"
       "source": "Arlington"
-      "accuracy_reasons": array:1 [
-        0 => "Global subtractPoints"
-      ]
     }
     1 => {
       "address_components": {
@@ -91,9 +88,6 @@ dump($response);
       "accuracy": 1
       "accuracy_type": "rooftop"
       "source": "Virginia Geographic Information Network (VGIN)"
-      "accuracy_reasons": array:1 [
-        0 => "Global subtractPoints"
-      ]
     }
   ]
 }
