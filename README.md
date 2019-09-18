@@ -202,10 +202,13 @@ You will now be able to use the `Geocodio` facade, or [dependency inject](https:
 
 ```php
 // Using facade
+use Geocodio;
+
 $response = Geocodio::geocode('1109 N Highland St, Arlington, VA');
 ```
 
 ```php
+// Using dependency injection
 use Geocodio\Geocodio;
 
 public function __construct(Geocodio $geocoder) {
