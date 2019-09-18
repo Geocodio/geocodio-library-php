@@ -64,7 +64,7 @@ $results = $geocoder->geocode([
 
 ### Field appends
 
-Geocodio allows you to append additional data points such as congressional districts, census codes, timezone, ACS survey results and [https://www.geocod.io/docs/#fields](much much more).
+Geocodio allows you to append additional data points such as congressional districts, census codes, timezone, ACS survey results and [much much more](https://www.geocod.io/docs/#fields).
 
 To request additional fields, simply supply them as an array as the second parameter
 
