@@ -23,7 +23,7 @@ class GeocodioServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__.'/../config/config.php', 'geocodio');
+        $this->mergeConfigFrom(__DIR__.'/../config/geocodio.php', 'geocodio');
 
         $this->app->bind(Geocodio\Geocodio::class, function () {
             return (new Geocodio)
