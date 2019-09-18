@@ -13,8 +13,8 @@ class GeocodioServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/../config/config.php' => config_path('geocodio.php'),
-            ], 'config');
+                __DIR__.'/../config/geocodio.php' => config_path('geocodio.php'),
+            ]);
         }
     }
 
