@@ -4,7 +4,6 @@
 [![Build Status](https://img.shields.io/travis/geocodio/geocodio-library-php/master.svg?style=flat-square)](https://travis-ci.org/geocodio/geocodio-library-php)
 [![Total Downloads](https://img.shields.io/packagist/dt/geocodio/geocodio-library-php.svg?style=flat-square)](https://packagist.org/packages/geocodio/geocodio-library-php)
 
-
 Library for performing forward and reverse address geocoding for addresses or coordinates in the US and Canada.
 
 The library contains an optional Laravel service provider, for easy integration into your [Laravel](https://laravel.com) app.
