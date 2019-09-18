@@ -1,8 +1,8 @@
 # geocod.io PHP library
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/geocodio/geocodio-library-php.svg?style=flat-square)](https://packagist.org/packages/geocodio/:package_name)
-[![Build Status](https://img.shields.io/travis/geocodio/geocodio-library-php/master.svg?style=flat-square)](https://travis-ci.org/geocodio/:package_name)
-[![Total Downloads](https://img.shields.io/packagist/dt/geocodio/geocodio-library-php.svg?style=flat-square)](https://packagist.org/packages/geocodio/:package_name)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/geocodio/geocodio-library-php.svg?style=flat-square)](https://packagist.org/packages/geocodio/geocodio-library-php)
+[![Build Status](https://img.shields.io/travis/geocodio/geocodio-library-php/master.svg?style=flat-square)](https://travis-ci.org/geocodio/geocodio-library-php)
+[![Total Downloads](https://img.shields.io/packagist/dt/geocodio/geocodio-library-php.svg?style=flat-square)](https://packagist.org/packages/geocodio/geocodio-library-php)
 
 
 Library for performing forward and reverse address geocoding for addresses or coordinates in the US and Canada.
