@@ -27,9 +27,80 @@ $geocoder = new Geocodio\Geocodio();
 $geocoder->setApiKey('YOUR_API_KEY');
 // $geocoder->setHostname('api-hipaa.geocod.io'); // optionally overwrite the API hostname
 
-$results = $geocoder->geocode('1109 N Highland St, Arlington, VA');
-$results = $geocoder->reverse('38.9002898,-76.9990361');
-$results = $geocoder->reverse([38.9002898, -76.9990361]);
+$response = $geocoder->geocode('1109 N Highland St, Arlington, VA');
+dump($response);
+/*
+{
+  "input": {
+    "address_components": {
+      "number": "1109"                                                       
+      "predirectional": "N"                                                   
+      "street": "Highland"                                                   
+      "suffix": "St"                                                    
+      "formatted_street": "N Highland St"                                     
+      "city": "Arlington"                                                     
+      "state": "VA"                                                           
+      "country": "US"                                                         
+    }                                                                        
+    "formatted_address": "1109 N Highland St, Arlington, VA"                
+  }             
+  "results": array:2 [                                                         
+    0 => {
+      "address_components": {
+        "number": "1109"                                                       
+        "predirectional": "N"
+        "street": "Highland"   
+        "suffix": "St"
+        "formatted_street": "N Highland St"
+        "city": "Arlington"
+        "county": "Arlington County"
+        "state": "VA"
+        "zip": "22201"
+        "country": "US"
+      }
+      "formatted_address": "1109 N Highland St, Arlington, VA 22201"
+      "location": {
+        "lat": 38.886672
+        "lng": -77.094735
+      }
+      "accuracy": 1
+      "accuracy_type": "rooftop"
+      "source": "Arlington"
+      "accuracy_reasons": array:1 [
+        0 => "Global subtractPoints"
+      ]
+    }
+    1 => {
+      "address_components": {
+        "number": "1109"
+        "predirectional": "N"
+        "street": "Highland"
+        "suffix": "St"
+        "formatted_street": "N Highland St"
+        "city": "Arlington"
+        "county": "Arlington County"
+        "state": "VA"
+        "zip": "22201"
+        "country": "US"
+      }
+      "formatted_address": "1109 N Highland St, Arlington, VA 22201"
+      "location": {
+        "lat": 38.886665
+        "lng": -77.094733
+      }
+      "accuracy": 1
+      "accuracy_type": "rooftop"
+      "source": "Virginia Geographic Information Network (VGIN)"
+      "accuracy_reasons": array:1 [
+        0 => "Global subtractPoints"
+      ]
+    }
+  ]
+}
+*/
+
+$response = $geocoder->reverse('38.9002898,-76.9990361');
+$response = $geocoder->reverse([38.9002898, -76.9990361]);
 ```
 
 ### Batch geocoding
@@ -37,7 +108,7 @@ $results = $geocoder->reverse([38.9002898, -76.9990361]);
 To batch geocode, simply pass an array of addresses or coordinates instead of a single string
 
 ```php
-$results = $geocoder->geocode([
+$response = $geocoder->geocode([
     '1109 N Highland St, Arlington VA',
     '525 University Ave, Toronto, ON, Canada',
     '4410 S Highway 17 92, Casselberry FL',
@@ -45,7 +116,7 @@ $results = $geocoder->geocode([
     '17015 Walnut Grove Drive, Morgan Hill CA'
 ]);
 
-$results = $geocoder->reverse([
+$response = $geocoder->reverse([
     '35.9746000,-77.9658000',
     '32.8793700,-96.6303900',
     '33.8337100,-117.8362320',
@@ -53,7 +124,7 @@ $results = $geocoder->reverse([
 ]);
 
 // Optionally supply a custom key that will be returned along with results
-$results = $geocoder->geocode([
+$response = $geocoder->geocode([
     'MyId1' => '1109 N Highland St, Arlington VA',
     'MyId2' => '525 University Ave, Toronto, ON, Canada',
     'MyId3' => '4410 S Highway 17 92, Casselberry FL',
@@ -69,7 +140,7 @@ Geocodio allows you to append additional data points such as congressional distr
 To request additional fields, simply supply them as an array as the second parameter
 
 ```php
-$results = $geocoder->geocode(
+$response = $geocoder->geocode(
     [
         '1109 N Highland St, Arlington VA',
         '525 University Ave, Toronto, ON, Canada'
@@ -80,7 +151,7 @@ $results = $geocoder->geocode(
     ]
 );
 
-$results = $geocoder->reverse('38.9002898,-76.9990361', ['census2010']);
+$response = $geocoder->reverse('38.9002898,-76.9990361', ['census2010']);
 ```
 
 ### Address components
@@ -88,14 +159,14 @@ $results = $geocoder->reverse('38.9002898,-76.9990361', ['census2010']);
 For forward geocoding requests it is possible to supply [individual address components](https://www.geocod.io/docs/#single-address) instead of a full address string. This works for both single and batch geocoding requests.
 
 ```php
-$results = $geocoder->geocode([
+$response = $geocoder->geocode([
     'street' => '1109 N Highland St',
     'city' => 'Arlington',
     'state' => 'VA',
     'postal_code' => '22201'
 ]);
 
-$results = $geocoder->geocode([
+$response = $geocoder->geocode([
     [
         'street' => '1109 N Highland St',
         'city' => 'Arlington',
@@ -115,8 +186,8 @@ $results = $geocoder->geocode([
 Optionally limit the number of maximum geocoding results by using the third parameter on `geocode(...)` or `reverse(...)`
 
 ```php
-$results = $geocoder->geocode('1109 N Highland St, Arlington, VA', [], 1); // Only get the first result
-$results = $geocoder->reverse('38.9002898,-76.9990361', ['timezone'], 5); // Return up to 5 geocoding results
+$response = $geocoder->geocode('1109 N Highland St, Arlington, VA', [], 1); // Only get the first result
+$response = $geocoder->reverse('38.9002898,-76.9990361', ['timezone'], 5); // Return up to 5 geocoding results
 ```
 
 ## Usage with Laravel
@@ -135,14 +206,14 @@ You will now be able to use the `Geocodio` facade, or [dependency inject](https:
 
 ```php
 // Using facade
-$results = Geocodio::geocode('1109 N Highland St, Arlington, VA');
+$response = Geocodio::geocode('1109 N Highland St, Arlington, VA');
 ```
 
 ```php
 use Geocodio\Geocodio;
 
 public function __construct(Geocodio $geocoder) {
-    $results = $geocoder->geocode('1109 N Highland St, Arlington, VA');
+    $response = $geocoder->geocode('1109 N Highland St, Arlington, VA');
 }
 ```
 
