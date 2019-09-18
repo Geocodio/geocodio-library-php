@@ -143,14 +143,16 @@ class Geocodio
         }
 
         return $this->client->get($url, [
-            'query' => $queryParameters
+            'query' => $queryParameters,
+            'headers' => $this->getHeaders()
         ]);
     }
 
     private function performBatchRequest(string $url, array $queries, array $queryParameters) {
         return $this->client->post($url, [
             'query' => $queryParameters,
-            'json' => $queries
+            'json' => $queries,
+            'headers' => $this->getHeaders()
         ]);
     }
 
@@ -175,5 +177,11 @@ class Geocodio
 
     private function formatResponse(ResponseInterface $response) {
         return json_decode((string)$response->getBody());
+    }
+
+    private function getHeaders(): array {
+        return [
+            'User-Agent' => 'geocodio-library-php/1.0.1'
+        ];
     }
 }
