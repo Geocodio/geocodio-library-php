@@ -9,6 +9,10 @@ Library for performing forward and reverse address geocoding for addresses or co
 
 The library contains an optional Laravel service provider, for easy integration into your [Laravel](https://laravel.com) app.
 
+## Don't have an API key yet?
+
+Sign up at [https://dash.geocod.io](https://dash.geocod.io) to get an API key. The first 2,500 lookups per day are free.
+
 ## Installation
 
 You can install the package via composer:
