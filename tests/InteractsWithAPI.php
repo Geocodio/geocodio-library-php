@@ -2,6 +2,8 @@
 
 namespace Geocodio\Tests;
 
+use InvalidArgumentException;
+
 trait InteractsWithAPI
 {
     protected function getApiKeyFromEnvironment(): string
