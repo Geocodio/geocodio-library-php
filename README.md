@@ -8,6 +8,24 @@ Library for performing forward and reverse address geocoding for addresses or co
 
 The library contains an optional Laravel service provider, for easy integration into your [Laravel](https://laravel.com) app.
 
+<!-- toc -->
+
+- [Don't have an API key yet?](#dont-have-an-api-key-yet)
+- [Installation](#installation)
+- [Usage](#usage)
+  * [Single geocoding](#single-geocoding)
+  * [Batch geocoding](#batch-geocoding)
+  * [Field appends](#field-appends)
+  * [Address components](#address-components)
+  * [Limit results](#limit-results)
+- [Usage with Laravel](#usage-with-laravel)
+- [Testing](#testing)
+- [Changelog](#changelog)
+- [Security](#security)
+- [License](#license)
+
+<!-- tocstop -->
+
 ## Don't have an API key yet?
 
 Sign up at [https://dash.geocod.io](https://dash.geocod.io) to get an API key. The first 2,500 lookups per day are free.
@@ -21,6 +39,8 @@ composer require geocodio/geocodio-library-php
 ```
 
 ## Usage
+
+### Single geocoding
 
 ```php
 $geocoder = new Geocodio\Geocodio();
@@ -211,8 +231,10 @@ $response = Geocodio::geocode('1109 N Highland St, Arlington, VA');
 // Using dependency injection
 use Geocodio\Geocodio;
 
-public function __construct(Geocodio $geocoder) {
-    $response = $geocoder->geocode('1109 N Highland St, Arlington, VA');
+class SomeController {
+  public function __construct(Geocodio $geocoder) {
+      $response = $geocoder->geocode('1109 N Highland St, Arlington, VA');
+  }
 }
 ```
 
