@@ -1,0 +1,54 @@
+{
+    "name": "geocodio/geocodio-library-php",
+    "description": "geocod.io geocoding API library",
+    "keywords": [
+        "geocodio",
+        "geocodio-library-php"
+    ],
+    "homepage": "https://github.com/geocodio/geocodio-library-php",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mathias Hansen",
+            "email": "hello@geocod.io",
+            "homepage": "https://www.geocod.io",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^7.3",
+        "guzzlehttp/guzzle": "^6.3"
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^4.3",
+        "phpunit/phpunit": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Geocodio\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Geocodio\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Geocodio\\GeocodioServiceProvider"
+            ],
+            "aliases": {
+                "Geocodio": "Geocodio\\GeocodioFacade"
+            }
+        }
+    }
+}
