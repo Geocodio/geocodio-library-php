@@ -97,6 +97,8 @@ $response = $geocoder->reverse('38.9002898,-76.9990361');
 $response = $geocoder->reverse([38.9002898, -76.9990361]);
 ```
 
+> Note: You can read more about accuracy scores, accuracy types, input formats and more at https://www.geocod.io/docs/
+
 ### Batch geocoding
 
 To batch geocode, simply pass an array of addresses or coordinates instead of a single string
