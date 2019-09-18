@@ -28,7 +28,7 @@ class GeocodioServiceProvider extends ServiceProvider
         $this->app->bind(Geocodio\Geocodio::class, function () {
             return (new Geocodio)
                 ->setApiKey(config('geocodio.api_key'))
-                ->setHostname(config('geocodio.hostname'));
+                ->setHostname(config('geocodio.hostname'))
                 ->setApiVersion(config('geocodio.api_version'));
         });
 
