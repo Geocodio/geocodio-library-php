@@ -25,7 +25,7 @@
 You can install the package via composer:
 
 ```bash
-composer require geocodio/geocodio-library-php
+$ composer require geocodio/geocodio-library-php
 ```
 
 ## Usage
@@ -232,8 +232,8 @@ class SomeController {
 
 ## Testing
 
-``` bash
-composer test
+```bash
+$ composer test
 ```
 
 ## Changelog
