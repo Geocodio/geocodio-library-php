@@ -1,16 +1,10 @@
-# geocod.io PHP library
+# geocodio-library-node [![Latest Version][packagist-image]][packagist-url] [![Build Status][travis-image]][travis-url] [![Total Downloads][downloads-image]][downloads-url]
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/geocodio/geocodio-library-php.svg?style=flat-square)](https://packagist.org/packages/geocodio/geocodio-library-php)
-[![Build Status](https://img.shields.io/travis/geocodio/geocodio-library-php/master.svg?style=flat-square)](https://travis-ci.org/geocodio/geocodio-library-php)
-[![Total Downloads](https://img.shields.io/packagist/dt/geocodio/geocodio-library-php.svg?style=flat-square)](https://packagist.org/packages/geocodio/geocodio-library-php)
-
-Library for performing forward and reverse address geocoding for addresses or coordinates in the US and Canada.
-
-The library contains an optional Laravel service provider, for easy integration into your [Laravel](https://laravel.com) app.
+> Library for performing forward and reverse address geocoding for addresses or coordinates in the US and Canada.
+> The library contains an optional Laravel service provider, for easy integration into your [Laravel](https://laravel.com) app.
 
 <!-- toc -->
 
-- [Don't have an API key yet?](#dont-have-an-api-key-yet)
 - [Installation](#installation)
 - [Usage](#usage)
   * [Single geocoding](#single-geocoding)
@@ -26,10 +20,6 @@ The library contains an optional Laravel service provider, for easy integration 
 
 <!-- tocstop -->
 
-## Don't have an API key yet?
-
-Sign up at [https://dash.geocod.io](https://dash.geocod.io) to get an API key. The first 2,500 lookups per day are free.
-
 ## Installation
 
 You can install the package via composer:
@@ -39,6 +29,8 @@ composer require geocodio/geocodio-library-php
 ```
 
 ## Usage
+
+> Don't have an API key yet? Sign up at [https://dash.geocod.io](https://dash.geocod.io) to get an API key. The first 2,500 lookups per day are free.
 
 ### Single geocoding
 
@@ -255,3 +247,10 @@ If you discover any security related issues, please email security@geocod.io ins
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+
+[packagist-image]: https://img.shields.io/packagist/v/geocodio/geocodio-library-php.svg?style=flat-square
+[packagist-url]: https://packagist.org/packages/geocodio/geocodio-library-php
+[travis-image]: https://img.shields.io/travis/geocodio/geocodio-library-php/master.svg?style=flat-square
+[travis-url]: https://travis-ci.org/geocodio/geocodio-library-php
+[downloads-image]: https://img.shields.io/packagist/dt/geocodio/geocodio-library-php.svg?style=flat-square
+[downloads-url]: https://packagist.org/packages/geocodio/geocodio-library-php
