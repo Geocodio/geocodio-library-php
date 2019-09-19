@@ -129,7 +129,7 @@ class Geocodio
         if (is_array($query)) {
             $addressComponentKeys = array_intersect(array_keys($query), self::ADDRESS_COMPONENT_PARAMETERS);
 
-            return count($addressComponentKeys) >= 2;
+            return count($addressComponentKeys) >= 1;
         }
 
         return true;
@@ -181,7 +181,7 @@ class Geocodio
 
     private function getHeaders(): array {
         return [
-            'User-Agent' => 'geocodio-library-php/1.0.1'
+            'User-Agent' => 'geocodio-library-php/1.0.2'
         ];
     }
 }
