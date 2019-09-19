@@ -1,7 +1,7 @@
 # geocodio-library-node [![Latest Version][packagist-image]][packagist-url] [![Build Status][travis-image]][travis-url] [![Total Downloads][downloads-image]][downloads-url]
 
 > Library for performing forward and reverse address geocoding for addresses or coordinates in the US and Canada.
-> The library contains an optional Laravel service provider, for easy integration into your [Laravel](https://laravel.com) app.
+> Using [Laravel](https://laravel.com)? Great! There's an optional Laravel service provider, for easy integration into your app.
 
 <!-- toc -->
 
