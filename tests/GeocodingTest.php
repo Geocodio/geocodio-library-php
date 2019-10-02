@@ -102,10 +102,10 @@ class GeocodingTest extends TestCase
 
     public function testLimitParameter()
     {
-        $response = $this->geocoder->geocode('1109 N Highland St, Arlington VA');
+        $response = $this->geocoder->geocode('1107 N Highland St, Arlington VA');
         $this->assertGreaterThan(1, count($response->results));
 
-        $response = $this->geocoder->geocode('1109 N Highland St, Arlington VA', [], 1);
+        $response = $this->geocoder->geocode('1107 N Highland St, Arlington VA', [], 1);
         $this->assertEquals(1, count($response->results));
     }
 }
