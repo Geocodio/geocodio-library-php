@@ -54,7 +54,7 @@ class GeocodingTest extends TestCase
         ]);
 
         $this->assertEquals('1109 N Highland St, Arlington, VA 22201', $response->results[0]->response->results[0]->formatted_address);
-        $this->assertEquals('525 University Ave, Toronto, ON', $response->results[1]->response->results[0]->formatted_address);
+        $this->assertEquals('525 University Ave, Toronto, ON M5G', $response->results[1]->response->results[0]->formatted_address);
     }
 
     public function testBatchForwardGeocodeComponents()
@@ -65,7 +65,7 @@ class GeocodingTest extends TestCase
         ]);
 
         $this->assertEquals('1109 N Highland St, Arlington, VA 22201', $response->results[0]->response->results[0]->formatted_address);
-        $this->assertEquals('525 University Ave, Toronto, ON', $response->results[1]->response->results[0]->formatted_address);
+        $this->assertEquals('525 University Ave, Toronto, ON M5G', $response->results[1]->response->results[0]->formatted_address);
     }
 
     public function testBatchReverseGeocode()
@@ -74,14 +74,14 @@ class GeocodingTest extends TestCase
             '35.9746000,-77.9658000',
             '32.8793700,-96.6303900'
         ]);
-        $this->assertEquals('101 W Washington St, Nashville, NC 27856', $responseStr->results[0]->response->results[0]->formatted_address);
+        $this->assertEquals('101 E Washington St, Nashville, NC 27856', $responseStr->results[0]->response->results[0]->formatted_address);
         $this->assertEquals('3034 S 1st St, Garland, TX 75041', $responseStr->results[1]->response->results[0]->formatted_address);
 
         $responseArr = $this->geocoder->reverse([
             ['35.9746000', '-77.9658000'],
             ['32.8793700', '-96.6303900']
         ]);
-        $this->assertEquals('101 W Washington St, Nashville, NC 27856', $responseArr->results[0]->response->results[0]->formatted_address);
+        $this->assertEquals('101 E Washington St, Nashville, NC 27856', $responseArr->results[0]->response->results[0]->formatted_address);
         $this->assertEquals('3034 S 1st St, Garland, TX 75041', $responseArr->results[1]->response->results[0]->formatted_address);
     }
 
