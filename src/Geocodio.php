@@ -25,7 +25,7 @@ class Geocodio
      * @var string API Version to use, defaults to most recent
      * @see https://www.geocod.io/docs/#changelog
      */
-    private $apiVersion = 'v1.4';
+    private $apiVersion = 'v1.6';
 
     const ADDRESS_COMPONENT_PARAMETERS = [
         'street',
@@ -181,7 +181,7 @@ class Geocodio
 
     private function getHeaders(): array {
         return [
-            'User-Agent' => 'geocodio-library-php/1.0.2'
+            'User-Agent' => 'geocodio-library-php/1.2.0'
         ];
     }
 }
