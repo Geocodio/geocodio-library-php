@@ -2,6 +2,10 @@
 
 All notable changes to `geocodio-library-php` will be documented in this file
 
+## 1.4.0 - 2021-03-23
+
+- Added support for PHP 8
+
 ## 1.3.0 - 2020-10-01
 
 - Added compatibility with Guzzle 7 (Laravel 8)
