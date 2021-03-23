@@ -1,7 +1,6 @@
 # geocod.io PHP library [![Latest Version][packagist-image]][packagist-url] [![Build Status][travis-image]][travis-url] [![Total Downloads][downloads-image]][downloads-url]
 
 > Library for performing forward and reverse address geocoding for addresses or coordinates in the US and Canada.
-> Using [Laravel](https://laravel.com)? Great! There's an optional Laravel service provider, for easy integration into your app.
 
 <!-- toc -->
 
@@ -27,6 +26,8 @@ You can install the package via composer:
 ```bash
 $ composer require geocodio/geocodio-library-php
 ```
+
+> Using [Laravel](https://laravel.com)? Great! There's an optional Laravel service provider, for easy integration into your app.
 
 ## Usage
 
