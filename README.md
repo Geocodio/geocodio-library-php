@@ -35,6 +35,8 @@ $ composer require geocodio/geocodio-library-php
 
 ### Single geocoding
 
+> Using the [Laravel](https://laravel.com) integration? Check out [Laravel-specific usage examples](#usage-with-laravel) below.
+
 ```php
 $geocoder = new Geocodio\Geocodio();
 $geocoder->setApiKey('YOUR_API_KEY');
