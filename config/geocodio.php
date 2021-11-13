@@ -43,6 +43,6 @@ return [
     |
     */
 
-    'api_version' => env('GEOCODIO_API_VERSION', 'v1.6'),
+    'api_version' => env('GEOCODIO_API_VERSION', 'v1.7'),
 
 ];

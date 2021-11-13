@@ -25,7 +25,7 @@ class Geocodio
      * @var string API Version to use, defaults to most recent
      * @see https://www.geocod.io/docs/#changelog
      */
-    private $apiVersion = 'v1.6';
+    private $apiVersion = 'v1.7';
 
     const ADDRESS_COMPONENT_PARAMETERS = [
         'street',
