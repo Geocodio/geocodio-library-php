@@ -144,6 +144,51 @@ $response = $geocoder->geocode([
 ]);
 ```
 
+### List geocoding
+
+The lists API lets you upload spreadsheets up to 1GB in size. Similar to the [spreadsheet feature](https://www.geocod.io/upload/) in the dashboard, the spreadsheet will be processed as a job on Geocodio's infrastructure and can be downloaded at a later time. While a spreadsheet is being processed it is possible to query the status and progress.
+
+```php
+// Upload a new list from a file
+$list = $geocoder->listUpload('test.csv', 'forward', '{{A}}');
+
+// ...or using inline data
+$csvData = <<<CSV
+name,street,city,state,zip
+"Peregrine Espresso","660 Pennsylvania Ave SE",Washington,DC,20003
+"Lot 38 Espresso Bar","1001 2nd St SE",Washington,DC,20003
+CSV;
+// $list = $geocoder->listUpload($csvData, 'forward', '{{B}} {{C}} {{D}} {{E}}');
+
+// Wait until list has been processed
+do {
+  $list = $geocoder->listStatus($list->id);
+  foreach ($list->status as $key => $val) {
+    echo $key . ': ' . $val . PHP_EOL;
+  }
+  echo PHP_EOL;
+
+  sleep(10);
+} while ($list->status->state === 'ENQUEUED' || $list->status->state === 'PROCESSING');
+
+if ($list->status->state === 'COMPLETED') {
+  // Download list and save output in variable
+  $output = $geocoder->listDownload($list->id);
+
+  // ...or save the lsit to a file
+  // $geocoder->listDownload($list->id, 'test_output.csv');
+
+  // Optionally delete the file. If we don't delete it here it will automatically be deleted 72 hours after it has finished processing
+  $geocoder->listDelete($list->id);
+} else {
+  echo 'Something seems to have gone wrong' . PHP_EOL;
+  echo json_encode($list, JSON_PRETTY_PRINT);
+}
+
+// Retrieve all lists geocoded via the API
+$lists = $geocoder->listAll();
+```
+
 ### Field appends
 
 Geocodio allows you to append additional data points such as congressional districts, census codes, timezone, ACS survey results and [much much more](https://www.geocod.io/docs/#fields).
