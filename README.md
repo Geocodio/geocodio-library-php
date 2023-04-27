@@ -213,7 +213,7 @@ php artisan vendor:publish --provider="Geocodio\GeocodioServiceProvider"
 
 You can now go ahead and edit your config file at `config/geocodio.php`.
 
-You will now be able to use the `Geocodio` facade, or [dependency inject](https://laravel.com/docs/6.x/container) the fully-configured `Geocodio` class.
+You will now be able to use the `Geocodio` facade, or [dependency inject](https://laravel.com/docs/10.x/container) the fully-configured `Geocodio` class.
 
 ```php
 // Using facade
