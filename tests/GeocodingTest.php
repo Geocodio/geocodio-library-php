@@ -10,7 +10,7 @@ class GeocodingTest extends TestCase
     use InteractsWithAPI;
 
     /** @var Geocodio */
-    private $gecoder;
+    private $geocoder;
 
     public function setUp(): void
     {
