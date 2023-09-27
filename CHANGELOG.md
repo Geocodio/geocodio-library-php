@@ -2,6 +2,10 @@
 
 All notable changes to `geocodio-library-php` will be documented in this file
 
+## 1.6.0 - 2023-09-27
+
+- Fix: Unintalized variable (minor)
+
 ## 1.5.0 - 2021-11-13
 
 - Update to use Geocodio API v1.7
