@@ -1,4 +1,4 @@
-# geocod.io PHP library [![Latest Version][packagist-image]][packagist-url] [![Build Status][travis-image]][travis-url] [![Total Downloads][downloads-image]][downloads-url]
+# geocod.io PHP library [![Latest Version][packagist-image]][packagist-url] [![Total Downloads][downloads-image]][downloads-url]
 
 > Library for performing forward and reverse address geocoding for addresses or coordinates in the US and Canada.
 
@@ -253,7 +253,5 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 
 [packagist-image]: https://img.shields.io/packagist/v/geocodio/geocodio-library-php.svg?style=flat-square
 [packagist-url]: https://packagist.org/packages/geocodio/geocodio-library-php
-[travis-image]: https://img.shields.io/travis/geocodio/geocodio-library-php/master.svg?style=flat-square
-[travis-url]: https://travis-ci.org/geocodio/geocodio-library-php
 [downloads-image]: https://img.shields.io/packagist/dt/geocodio/geocodio-library-php.svg?style=flat-square
 [downloads-url]: https://packagist.org/packages/geocodio/geocodio-library-php
