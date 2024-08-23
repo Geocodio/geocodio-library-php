@@ -26,7 +26,7 @@ class Geocodio
      * @see https://www.geocod.io/docs/#changelog
      */
     private $apiVersion = 'v1.7';
-    
+
     private Client $client;
 
     const ADDRESS_COMPONENT_PARAMETERS = [
@@ -65,10 +65,11 @@ class Geocodio
      * @param string|array $query
      * @param array $fields
      * @param int|null $limit
+     * @param string|null $format
      * @return array|object
      */
-    public function geocode($query, array $fields = [], int $limit = null) {
-        return $this->handleRequest('geocode', $query, $fields, $limit);
+    public function geocode($query, array $fields = [], int $limit = null, string $format = null) {
+        return $this->handleRequest('geocode', $query, $fields, $limit, $format);
     }
 
     /**
@@ -76,19 +77,21 @@ class Geocodio
      * @param string|array $query
      * @param array $fields
      * @param int|null $limit
+     * @param string|null $format
      * @return array|object
      */
-    public function reverse($query, array $fields = [], int $limit = null) {
-        return $this->handleRequest('reverse', $query, $fields, $limit);
+    public function reverse($query, array $fields = [], int $limit = null, string $format = null) {
+        return $this->handleRequest('reverse', $query, $fields, $limit, $format);
     }
 
-    private function handleRequest(string $endpoint, $query, array $fields = [], int $limit = null) {
+    private function handleRequest(string $endpoint, $query, array $fields = [], int $limit = null, string $format = null) {
         $url = $this->formatUrl($endpoint);
 
         $queryParameters = array_filter([
             'api_key' => $this->apiKey,
             'fields' => implode(',', $fields),
-            'limit' => $limit
+            'limit' => $limit,
+            'format' => $format
         ]);
 
         $query = $this->preprocessQuery($query, $endpoint);

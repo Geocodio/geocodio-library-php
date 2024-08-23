@@ -9,7 +9,7 @@ class GeocodingTest extends TestCase
 {
     use InteractsWithAPI;
 
-    /** @var Geocodio */
+    /**@var Geocodio */
     private $gecoder;
 
     public function setUp(): void
@@ -107,5 +107,18 @@ class GeocodingTest extends TestCase
 
         $response = $this->geocoder->geocode('1107 N Highland St, Arlington VA', [], 1);
         $this->assertEquals(1, count($response->results));
+    }
+
+    public function testFormatSimpleParameter()
+    {
+        $response = $this->geocoder->geocode('1109 N Highland St, Arlington VA', [], null, 'simple');
+        $this->assertEquals('1109 N Highland St, Arlington, VA 22201', $response->address);
+        $this->assertEquals('38.886672', $response->lat);
+        $this->assertEquals('-77.094735', $response->lng);
+
+        $response = $this->geocoder->reverse('38.886672,-77.094735', [], null, 'simple');
+        $this->assertEquals('1109 N Highland St, Arlington, VA 22201', $response->address);
+        $this->assertEquals('38.886672', $response->lat);
+        $this->assertEquals('-77.094735', $response->lng);
     }
 }
