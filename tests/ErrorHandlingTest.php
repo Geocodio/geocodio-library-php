@@ -10,8 +10,7 @@ class ErrorHandlingTest extends TestCase
 {
     use InteractsWithAPI;
 
-    /**@var Geocodio */
-    private $gecoder;
+    private Geocodio $geocoder;
 
     public function setUp(): void
     {
@@ -39,7 +38,7 @@ class ErrorHandlingTest extends TestCase
     public function testBadQuery()
     {
         $this->expectException(GeocodioException::class);
-        $this->expectExceptionMessage('Could not geocode address. Postal code or city required.');
+        $this->expectExceptionMessage('Could not geocode address. No matches found.');
 
         $this->geocoder->geocode(' ');
     }
