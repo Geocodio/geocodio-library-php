@@ -10,7 +10,7 @@ class ErrorHandlingTest extends TestCase
 {
     use InteractsWithAPI;
 
-    /** @var Geocodio */
+    /**@var Geocodio */
     private $gecoder;
 
     public function setUp(): void
