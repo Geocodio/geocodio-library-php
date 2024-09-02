@@ -2,6 +2,10 @@
 
 All notable changes to `geocodio-library-php` will be documented in this file
 
+## 1.7.0 - 2024-09-02
+
+- Added support for the `format` parameter, thanks to pull request [#7](https://github.com/Geocodio/geocodio-library-php/pull/7) by [@kirilldakhniuk](https://github.com/kirilldakhniuk)
+
 ## 1.6.0 - 2023-09-27
 
 - Fix: Unintalized variable (minor)
