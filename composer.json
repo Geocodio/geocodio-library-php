@@ -20,8 +20,9 @@
         "guzzlehttp/guzzle": "^6.3|^7.0"
     },
     "require-dev": {
-        "symfony/var-dumper": "^4.3",
-        "phpunit/phpunit": "^8.2"
+        "pestphp/pest": "^3.0",
+        "phpunit/phpunit": "^11.0",
+        "symfony/var-dumper": "^4.3"
     },
     "autoload": {
         "psr-4": {
@@ -38,7 +39,10 @@
         "toc": "markdown-toc README.md -i"
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     },
     "extra": {
         "laravel": {

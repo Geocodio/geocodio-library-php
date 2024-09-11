@@ -2,44 +2,30 @@
 
 namespace Geocodio\Tests;
 
-use PHPUnit\Framework\TestCase;
-use Geocodio\Geocodio;
 use Geocodio\Exceptions\GeocodioException;
+use Geocodio\Geocodio;
 
-class ErrorHandlingTest extends TestCase
-{
-    use InteractsWithAPI;
+uses(InteractsWithAPI::class);
 
-    private Geocodio $geocoder;
+beforeEach(function () {
+    $this->geocoder = new Geocodio;
+    $this->geocoder->setApiKey($this->getApiKeyFromEnvironment());
 
-    public function setUp(): void
-    {
-        parent::setUp();
-
-        $this->geocoder = new Geocodio();
-        $this->geocoder->setApiKey($this->getApiKeyFromEnvironment());
-
-        $hostname = $this->getHostnameFromEnvironment();
-        if ($hostname) {
-            $this->geocoder->setHostname($hostname);
-        }
+    $hostname = $this->getHostnameFromEnvironment();
+    if ($hostname) {
+        $this->geocoder->setHostname($hostname);
     }
+});
 
-    public function testBadApiKey()
-    {
-        $this->expectException(GeocodioException::class);
-        $this->expectExceptionMessage('Invalid API key');
+it('throws an exception for a bad API key', function () {
+    $geocoder = new Geocodio;
+    $geocoder->setApiKey('BAD_API_KEY');
 
-        $geocoder = new Geocodio();
-        $geocoder->setApiKey('BAD_API_KEY');
-        $geocoder->geocode('20003');
-    }
+    expect(fn () => $geocoder->geocode('20003'))
+        ->toThrow(GeocodioException::class, 'Invalid API key');
+});
 
-    public function testBadQuery()
-    {
-        $this->expectException(GeocodioException::class);
-        $this->expectExceptionMessage('Could not geocode address. No matches found.');
-
-        $this->geocoder->geocode(' ');
-    }
-}
+it('throws an exception for a bad query', function () {
+    expect(fn () => $this->geocoder->geocode(' '))
+        ->toThrow(GeocodioException::class, 'Could not geocode address. No matches found.');
+});
