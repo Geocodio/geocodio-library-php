@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - "**.php"
-      - ".github/workflows/tests.yml"
+      - ".github/workflows/run-tests.yml"
       - "phpunit.xml.dist"
       - "composer.json"
       - "composer.lock"
@@ -16,8 +16,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest]
-        php: [7.2, 8.0, 8.1, 8.2, 8.3]
+        os: [ubuntu-latest, windows-latest]
+        php: [8.3, 8.2, 8.1]
         stability: [prefer-lowest, prefer-stable]
 
     name: P${{ matrix.php }} - ${{ matrix.stability }} - ${{ matrix.os }}
@@ -39,11 +39,12 @@ jobs:
           echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
       - name: Install dependencies
-        run: |
-          composer update --${{ matrix.stability }} --prefer-dist --no-interaction
+        run: composer update --${{ matrix.stability }} --prefer-dist --no-interaction
 
       - name: List Installed Dependencies
         run: composer show -D
 
       - name: Execute tests
-        run: vendor/bin/pest --ci
+        env:
+          super_secret: ${{ secrets.geocodio_api_key }}
+        run: vendor/bin/pest --ci --parallel
