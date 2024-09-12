@@ -7,7 +7,7 @@ use Geocodio\Geocodio;
 
 uses(InteractsWithAPI::class);
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->geocoder = new Geocodio;
     $this->geocoder->setApiKey($this->getApiKeyFromEnvironment());
 
@@ -17,7 +17,7 @@ beforeEach(function () {
     }
 });
 
-it('throws an exception for a bad API key', function () {
+it('throws an exception for a bad API key', function (): void {
     $geocoder = new Geocodio;
     $geocoder->setApiKey('BAD_API_KEY');
 
@@ -25,7 +25,7 @@ it('throws an exception for a bad API key', function () {
         ->toThrow(GeocodioException::class, 'Invalid API key');
 });
 
-it('throws an exception for a bad query', function () {
+it('throws an exception for a bad query', function (): void {
     expect(fn () => $this->geocoder->geocode(' '))
         ->toThrow(GeocodioException::class, 'Could not geocode address. No matches found.');
 });
