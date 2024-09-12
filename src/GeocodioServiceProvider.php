@@ -25,7 +25,7 @@ class GeocodioServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/geocodio.php', 'geocodio');
 
-        $this->app->bind(Geocodio::class, fn(): \Geocodio\Geocodio => (new Geocodio)
+        $this->app->bind(Geocodio::class, fn (): \Geocodio\Geocodio => (new Geocodio)
             ->setApiKey(config('geocodio.api_key'))
             ->setHostname(config('geocodio.hostname'))
             ->setApiVersion(config('geocodio.api_version')));

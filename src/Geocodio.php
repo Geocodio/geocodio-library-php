@@ -37,9 +37,7 @@ class Geocodio
         'country',
     ];
 
-    public function __construct(private readonly Client $client = new Client)
-    {
-    }
+    public function __construct(private readonly Client $client = new Client) {}
 
     public function setApiKey(string $apiKey): self
     {
@@ -68,7 +66,7 @@ class Geocodio
      * @param  string|array  $query
      * @return array|object
      */
-    public function geocode($query, array $fields = [], ?int $limit = null, ?string $format = null)
+    public function geocode($query, array $fields = [], ?int $limit = null, ?string $format = null): mixed
     {
         return $this->handleRequest('geocode', $query, $fields, $limit, $format);
     }
@@ -79,12 +77,12 @@ class Geocodio
      * @param  string|array  $query
      * @return array|object
      */
-    public function reverse($query, array $fields = [], ?int $limit = null, ?string $format = null)
+    public function reverse($query, array $fields = [], ?int $limit = null, ?string $format = null): mixed
     {
         return $this->handleRequest('reverse', $query, $fields, $limit, $format);
     }
 
-    private function handleRequest(string $endpoint, $query, array $fields = [], ?int $limit = null, ?string $format = null)
+    private function handleRequest(string $endpoint, $query, array $fields = [], ?int $limit = null, ?string $format = null): mixed
     {
         $url = $this->formatUrl($endpoint);
 
@@ -101,7 +99,7 @@ class Geocodio
             if ($this->isSingleQuery($query)) {
                 $response = $this->performSingleRequest($url, $query, $queryParameters);
             } else {
-                $query = array_map(fn($item) => $this->preprocessQuery($item, $endpoint), $query);
+                $query = array_map(fn ($item) => $this->preprocessQuery($item, $endpoint), $query);
 
                 $response = $this->performBatchRequest($url, $query, $queryParameters);
             }

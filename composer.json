@@ -23,6 +23,7 @@
         "laravel/pint": "^1.17",
         "pestphp/pest": "^3.0",
         "phpunit/phpunit": "^11.0",
+        "projektgopher/whisky": "^0.7.0",
         "rector/rector": "^1.2",
         "symfony/var-dumper": "^4.3"
     },
@@ -37,6 +38,12 @@
         }
     },
     "scripts": {
+        "post-install-cmd": [
+            "whisky update"
+        ],
+        "post-update-cmd": [
+            "whisky update"
+        ],
         "test": "vendor/bin/pest",
         "toc": "markdown-toc README.md -i",
         "format": [
