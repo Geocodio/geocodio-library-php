@@ -3,9 +3,11 @@
 namespace Geocodio;
 
 use Exception;
+use Geocodio\Enums\GeocodeDirection;
 use Geocodio\Exceptions\GeocodioException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\RequestOptions;
 use Psr\Http\Message\ResponseInterface;
 
 class Geocodio
@@ -69,6 +71,168 @@ class Geocodio
     public function geocode($query, array $fields = [], ?int $limit = null, ?string $format = null): mixed
     {
         return $this->handleRequest('geocode', $query, $fields, $limit, $format);
+    }
+
+    public function uploadList(
+        string $file,
+        GeocodeDirection $direction,
+        string $format,
+        string $callbackWebhook = '',
+    ): array {
+        if (! file_exists($file)) {
+            throw new Exception("File ({$file}) not found");
+        }
+
+        $response = $this
+            ->client
+            ->post(
+                $this->formatUrl('lists'),
+                [
+                    RequestOptions::HEADERS => $this->getHeaders(),
+                    RequestOptions::QUERY => ['api_key' => $this->apiKey],
+                    RequestOptions::MULTIPART => [
+                        [
+                            'name' => 'file',
+                            'contents' => fopen($file, 'r'),
+                            'filename' => basename($file),
+                        ],
+                        [
+                            'name' => 'direction',
+                            'contents' => $direction->value,
+                        ],
+                        [
+                            'name' => 'format',
+                            'contents' => $format,
+                        ],
+                        [
+                            'name' => 'callback',
+                            'contents' => $callbackWebhook,
+                        ],
+                    ],
+                ]
+            );
+
+        $body = (string) $response->getBody();
+
+        if (! json_validate($body)) {
+            throw new Exception('Invalid json returned from request');
+        }
+
+        return json_decode($body, true);
+    }
+
+    public function uploadInlineList(
+        string $data,
+        string $filename,
+        GeocodeDirection $direction,
+        string $format,
+        string $callbackWebhook = '',
+    ) {
+        $response = $this
+            ->client
+            ->post(
+                $this->formatUrl('lists'),
+                [
+                    RequestOptions::HEADERS => $this->getHeaders(),
+                    RequestOptions::QUERY => ['api_key' => $this->apiKey],
+                    RequestOptions::MULTIPART => [
+                        [
+                            'name' => 'file',
+                            'contents' => $data,
+                            'filename' => $filename,
+                        ],
+                        [
+                            'name' => 'direction',
+                            'contents' => $direction->value,
+                        ],
+                        [
+                            'name' => 'format',
+                            'contents' => $format,
+                        ],
+                        [
+                            'name' => 'callback',
+                            'contents' => $callbackWebhook,
+                        ],
+                    ],
+                ]
+            );
+
+        $body = (string) $response->getBody();
+
+        if (! json_validate($body)) {
+            throw new Exception('Invalid json returned from request');
+        }
+
+        return json_decode($body, true);
+    }
+
+    public function listStatus(int $listId)
+    {
+        $response = $this
+            ->client
+            ->get(
+                $this->formatUrl("lists/{$listId}"),
+                [
+                    RequestOptions::HEADERS => $this->getHeaders(),
+                    RequestOptions::QUERY => ['api_key' => $this->apiKey],
+                ]
+            );
+
+        $body = (string) $response->getBody();
+
+        if (! json_validate($body)) {
+            throw new Exception('Invalid json returned from uploadList');
+        }
+
+        return json_decode($body, true);
+    }
+
+    public function lists()
+    {
+        $response = $this
+            ->client
+            ->get(
+                $this->formatUrl('lists'),
+                [
+                    RequestOptions::HEADERS => $this->getHeaders(),
+                    RequestOptions::QUERY => ['api_key' => $this->apiKey],
+                ]
+            );
+
+        $body = (string) $response->getBody();
+
+        if (! json_validate($body)) {
+            throw new Exception('Invalid json returned from uploadList');
+        }
+
+        return json_decode($body, true);
+
+    }
+
+    public function downloadList(string $listId)
+    {
+        //
+    }
+
+    public function deleteList(int $listId)
+    {
+        $response = $this
+            ->client
+            ->delete(
+                $this->formatUrl("lists/{$listId}"),
+                [
+                    RequestOptions::HEADERS => $this->getHeaders(),
+                    RequestOptions::QUERY => ['api_key' => $this->apiKey],
+                ]
+            );
+
+        $body = (string) $response->getBody();
+
+        if (! json_validate($body)) {
+            throw new Exception('Invalid json returned from uploadList');
+        }
+
+        return json_decode($body, true);
     }
 
     /**
@@ -192,6 +356,7 @@ class Geocodio
     {
         return [
             'User-Agent' => 'geocodio-library-php/1.2.0',
+            'Accept' => 'application/json',
         ];
     }
 }

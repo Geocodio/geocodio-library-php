@@ -25,7 +25,8 @@
         "phpunit/phpunit": "^11.0",
         "projektgopher/whisky": "^0.7.0",
         "rector/rector": "^1.2",
-        "symfony/var-dumper": "^4.3"
+        "symfony/var-dumper": "^4.3",
+        "spatie/ray": "^1.41"
     },
     "autoload": {
         "psr-4": {
