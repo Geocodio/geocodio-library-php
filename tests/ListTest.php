@@ -22,18 +22,18 @@ it('throws an exception if the file doesn\'t exist', function (): void {
 })->throws(Exception::class, 'File ('.__DIR__.'/Fixtures/not-found.csv) not found');
 
 it('uploads a list', function (): void {
-    $client = Client::create([
+    $http = Client::create([
         new Response(200, body: json_encode([])),
     ]);
 
-    (new Geocodio($client->client()))
+    (new Geocodio($http->client()))
         ->uploadList(
             __DIR__.'/Fixtures/simple.csv',
             GeocodeDirection::Forward,
             '{{B}} {{C}} {{D}} {{E}}'
         );
 
-    $history = $client->history();
+    $history = $http->history();
 
     expect($history)->toHaveCount(1);
 
@@ -59,7 +59,7 @@ it('uploads a list', function (): void {
 });
 
 it('uploads an inline list', function (): void {
-    $client = Client::create([
+    $http = Client::create([
         new Response(200, body: json_encode([])),
     ]);
 
@@ -69,7 +69,7 @@ it('uploads an inline list', function (): void {
     "Lot 38 Espresso Bar","1001 2nd St SE",Washington,DC,20003
     CSV;
 
-    (new Geocodio($client->client()))
+    (new Geocodio($http->client()))
         ->uploadInlineList(
             $csvData,
             'coffee-shops.csv',
@@ -77,7 +77,7 @@ it('uploads an inline list', function (): void {
             '{{B}} {{C}} {{D}} {{E}}'
         );
 
-    $history = $client->history();
+    $history = $http->history();
 
     expect($history)->toHaveCount(1);
 
@@ -108,7 +108,12 @@ it('uploads an inline list', function (): void {
 it('can fetch your lists', function (): void {
     $this->markTestSkipped('Need to mock the call');
 
-    $response = $this->geocoder->lists();
+    $http = Client::create([
+        new Response(200, body: json_encode([])),
+    ]);
+
+    $response = (new Geocodio($http->client()))
+        ->lists();
 
     ray('lists', $response);
 });
