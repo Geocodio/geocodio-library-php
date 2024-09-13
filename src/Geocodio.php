@@ -39,6 +39,8 @@ class Geocodio
         'country',
     ];
 
+    const SDK_VERSION = '1.2.0';
+
     public function __construct(private readonly Client $client = new Client)
     {
         $this->apiKey = getenv('GEOCODIO_API_KEY');
@@ -47,9 +49,14 @@ class Geocodio
             $this->hostname = $hostname;
         }
 
-        if ($apiVersion = getenv('GEOCODIO_VERSION')) {
+        if ($apiVersion = getenv('GEOCODIO_API_VERSION')) {
             $this->apiVersion = $apiVersion;
         }
+    }
+
+    public function apiVersion(): string
+    {
+        return $this->apiVersion;
     }
 
     public function setApiKey(string $apiKey): self
@@ -91,7 +98,7 @@ class Geocodio
         string $callbackWebhook = '',
     ): array {
         if (! file_exists($file)) {
-            throw new Exception("File ({$file}) not found");
+            throw GeocodioException::fileNotFound($file);
         }
 
         $response = $this
@@ -252,8 +259,12 @@ class Geocodio
      * @param  string|array  $query
      * @return array|object
      */
-    public function reverse($query, array $fields = [], ?int $limit = null, ?string $format = null): mixed
-    {
+    public function reverse(
+        $query,
+        array $fields = [],
+        ?int $limit = null,
+        ?string $format = null
+    ): mixed {
         return $this->handleRequest('reverse', $query, $fields, $limit, $format);
     }
 
@@ -287,7 +298,11 @@ class Geocodio
 
     private function formatUrl(string $endpoint): string
     {
-        return sprintf('https://%s/%s/%s', $this->hostname, $this->apiVersion, $endpoint);
+        return vsprintf('https://%s/%s/%s', [
+            $this->hostname,
+            $this->apiVersion,
+            $endpoint,
+        ]);
     }
 
     private function preprocessQuery($query, string $endpoint)
@@ -366,7 +381,7 @@ class Geocodio
     private function getHeaders(): array
     {
         return [
-            'User-Agent' => 'geocodio-library-php/1.2.0',
+            'User-Agent' => sprintf('geocodio-library-php/%s', self::SDK_VERSION),
             'Accept' => 'application/json',
         ];
     }
