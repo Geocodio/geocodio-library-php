@@ -7,42 +7,61 @@ namespace Geocodio\Tests;
 use Exception;
 use Geocodio\Enums\GeocodeDirection;
 use Geocodio\Geocodio;
+use Geocodio\Tests\TestDoubles\Client;
+use GuzzleHttp\Psr7\Response;
 
-uses(InteractsWithAPI::class);
-
-beforeEach(function (): void {
-    $this->geocoder = new Geocodio;
-    $this->geocoder->setApiKey($this->getApiKeyFromEnvironment());
-    $hostname = $this->getHostnameFromEnvironment();
-    if ($hostname) {
-        $this->geocoder->setHostname($hostname);
-    }
-});
-
-it('uploads throws an exception if the file doesn\'t exist', function (): void {
-    $response = $this->geocoder->uploadList(
-        __DIR__.'/Fixtures/not-found.csv',
-        GeocodeDirection::Forward,
-        '{{B}} {{C}} {{D}} {{E}}'
-    );
+it('throws an exception if the file doesn\'t exist', function (): void {
+    $response = (new Geocodio)
+        ->uploadList(
+            __DIR__.'/Fixtures/not-found.csv',
+            GeocodeDirection::Forward,
+            '{{B}} {{C}} {{D}} {{E}}'
+        );
 
     ray('uploadList', $response);
 })->throws(Exception::class, 'File ('.__DIR__.'/Fixtures/not-found.csv) not found');
 
 it('uploads a list', function (): void {
-    $this->markTestSkipped('Need to mock the call');
+    $client = Client::create([
+        new Response(200, body: json_encode([])),
+    ]);
 
-    $response = $this->geocoder->uploadList(
-        __DIR__.'/Fixtures/simple.csv',
-        GeocodeDirection::Forward,
-        '{{B}} {{C}} {{D}} {{E}}'
-    );
+    (new Geocodio($client->client()))
+        ->uploadList(
+            __DIR__.'/Fixtures/simple.csv',
+            GeocodeDirection::Forward,
+            '{{B}} {{C}} {{D}} {{E}}'
+        );
 
-    ray('uploadList', $response);
+    $history = $client->history();
+
+    expect($history)->toHaveCount(1);
+
+    $request = $history[0]['request'];
+    $body = (string) $request->getBody();
+
+    // Assert that the request is a POST request
+    expect($request->getMethod())->toBe('POST');
+
+    // Assert that the Content-Type header is set correctly
+    expect($request->getHeaderLine('Content-Type'))->toContain('multipart/form-data');
+
+    // Assert that the body contains the expected multi-part form data
+    expect($body)->toContain('name="file"');
+    expect($body)->toContain('name="direction"');
+    expect($body)->toContain('name="format"');
+    expect($body)->toContain('name="callback"');
+
+    // Assert specific values
+    expect($body)->toContain('filename="simple.csv"');
+    expect($body)->toContain('forward'); // The value of GeocodeDirection::Forward
+    expect($body)->toContain('{{B}} {{C}} {{D}} {{E}}');
 });
 
 it('uploads an inline list', function (): void {
-    $this->markTestSkipped('Need to mock the call');
+    $client = Client::create([
+        new Response(200, body: json_encode([])),
+    ]);
 
     $csvData = <<<'CSV'
     name,street,city,state,zip
@@ -50,14 +69,40 @@ it('uploads an inline list', function (): void {
     "Lot 38 Espresso Bar","1001 2nd St SE",Washington,DC,20003
     CSV;
 
-    $response = $this->geocoder->uploadInlineList(
-        $csvData,
-        'coffee-shops.csv',
-        GeocodeDirection::Forward,
-        '{{B}} {{C}} {{D}} {{E}}'
-    );
+    (new Geocodio($client->client()))
+        ->uploadInlineList(
+            $csvData,
+            'coffee-shops.csv',
+            GeocodeDirection::Forward,
+            '{{B}} {{C}} {{D}} {{E}}'
+        );
 
-    ray('uploadInlineList', $response);
+    $history = $client->history();
+
+    expect($history)->toHaveCount(1);
+
+    $request = $history[0]['request'];
+    $body = (string) $request->getBody();
+
+    // Assert that the request is a POST request
+    expect($request->getMethod())->toBe('POST');
+
+    // Assert that the Content-Type header is set correctly
+    expect($request->getHeaderLine('Content-Type'))->toContain('multipart/form-data');
+
+    // Assert that the body contains the expected multi-part form data
+    expect($body)->toContain('name="file"');
+    expect($body)->toContain('name="direction"');
+    expect($body)->toContain('name="format"');
+    expect($body)->toContain('name="callback"');
+
+    // Assert specific values
+    expect($body)->toContain('filename="coffee-shops.csv"');
+    expect($body)->toContain('name,street,city,state,zip');
+    expect($body)->toContain('"Peregrine Espresso","660 Pennsylvania Ave SE",Washington,DC,20003');
+    expect($body)->toContain('"Lot 38 Espresso Bar","1001 2nd St SE",Washington,DC,20003');
+    expect($body)->toContain('forward'); // The value of GeocodeDirection::Forward
+    expect($body)->toContain('{{B}} {{C}} {{D}} {{E}}');
 });
 
 it('can fetch your lists', function (): void {

@@ -39,7 +39,18 @@ class Geocodio
         'country',
     ];
 
-    public function __construct(private readonly Client $client = new Client) {}
+    public function __construct(private readonly Client $client = new Client)
+    {
+        $this->apiKey = getenv('GEOCODIO_API_KEY');
+
+        if ($hostname = getenv('GEOCODIO_HOSTNAME')) {
+            $this->hostname = $hostname;
+        }
+
+        if ($apiVersion = getenv('GEOCODIO_VERSION')) {
+            $this->apiVersion = $apiVersion;
+        }
+    }
 
     public function setApiKey(string $apiKey): self
     {
