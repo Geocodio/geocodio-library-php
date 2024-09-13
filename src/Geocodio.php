@@ -127,7 +127,7 @@ class Geocodio
         GeocodeDirection $direction,
         string $format,
         string $callbackWebhook = '',
-    ) {
+    ): mixed {
         $response = $this
             ->client
             ->post(
@@ -166,7 +166,7 @@ class Geocodio
         return json_decode($body, true);
     }
 
-    public function listStatus(int $listId)
+    public function listStatus(int $listId): mixed
     {
         $response = $this
             ->client
@@ -187,7 +187,7 @@ class Geocodio
         return json_decode($body, true);
     }
 
-    public function lists()
+    public function lists(): mixed
     {
         $response = $this
             ->client
@@ -209,12 +209,12 @@ class Geocodio
 
     }
 
-    public function downloadList(string $listId)
+    public function downloadList(string $listId): void
     {
         //
     }
 
-    public function deleteList(int $listId)
+    public function deleteList(int $listId): mixed
     {
         $response = $this
             ->client
