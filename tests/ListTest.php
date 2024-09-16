@@ -214,3 +214,24 @@ it('throws exception when uploading from invalid inline file', function (): void
     GeocodioException::class,
     'Request Error: Uploaded spreadsheet appears to be empty or unreadable'
 );
+
+it('can download a list to a location', function (): void {
+    $temp = tmpfile();
+    $path = stream_get_meta_data($temp)['uri'];
+    fclose($temp);
+
+    $contents = file_get_contents(__DIR__.'/Fixtures/download.csv');
+
+    $http = Client::create([
+        new Response(200, [], $contents),
+    ]);
+
+    $geocodio = (new Geocodio($http->client()));
+
+    $geocodio->downloadList(11951418, $path);
+
+    expect($path)->toBeFile();
+    expect(file_get_contents($path))->toBe($contents);
+
+    unlink($path);
+});

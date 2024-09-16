@@ -1,0 +1,5 @@
+Name,Address,City,State,Zip,Latitude,Longitude,"Accuracy Score","Accuracy Type",Number,Street,"Unit Type","Unit Number",City,State,County,Zip,Country,Source
+"Foo Bar","129 Marshall St",Syracuse,NY,13210,43.041724,-76.135878,1,rooftop,129,"Marshall St",,,Syracuse,NY,"Onondaga County",13210,US,"NYS GIS Program Office, State Geographic Information Officer (GIO)"
+"Foo Bar","7851 Reynolds Rd.",Mentor,OH,44060,41.657827,-81.377119,1,rooftop,7851,"Reynolds Rd",,,Mentor,OH,"Lake County",44060,US,Lake
+"Foo Bar","3496 Erie Blvd East",Syracuse,NY,13214,43.042876,-76.068495,1,rooftop,3496,"Erie Blvd E",,,Syracuse,NY,"Onondaga County",13214,US,"NYS GIS Program Office, State Geographic Information Officer (GIO)"
+"Foo Bar","1290 Arsenal Street",Watertown,NY,13601,43.979623,-75.947267,1,rooftop,1290,"Arsenal St",,,Watertown,NY,"Jefferson County",13601,US,"NYS GIS Program Office, State Geographic Information Officer (GIO)"

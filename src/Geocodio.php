@@ -247,9 +247,36 @@ class Geocodio
 
     }
 
-    public function downloadList(string $listId): void
+    public function downloadList(int $listId, string $filePath): void
     {
-        //
+        try {
+            $response = $this->client->get($this->formatUrl("lists/{$listId}/download"), [
+                RequestOptions::HEADERS => $this->getHeaders(),
+                RequestOptions::QUERY => ['api_key' => $this->apiKey],
+                RequestOptions::STREAM => true,
+            ]);
+
+            $body = $response->getBody();
+
+            if (! $fileHandle = fopen($filePath, 'w')) {
+                throw new Exception("Unable to open file for writing: {$filePath}");
+            }
+
+            while (! $body->eof()) {
+                $chunk = $body->read(8192); // Read in 8KB chunks
+                fwrite($fileHandle, $chunk);
+            }
+
+            fclose($fileHandle);
+        } catch (ClientException|ServerException $e) {
+            $errorResponse = json_decode($e->getResponse()->getBody(), true);
+            throw GeocodioException::requestError(
+                $errorResponse['error'] ?? 'Error downloading list',
+                $e
+            );
+        } catch (Exception $e) {
+            throw new GeocodioException('Error downloading list: '.$e->getMessage(), 0, $e);
+        }
     }
 
     public function deleteList(int $listId): mixed
