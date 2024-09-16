@@ -8,18 +8,17 @@ use Geocodio\Enums\GeocodeDirection;
 use Geocodio\Exceptions\GeocodioException;
 use Geocodio\Geocodio;
 use Geocodio\Tests\TestDoubles\Client;
+use Geocodio\Tests\TestDoubles\TestResponse;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 
 it('throws an exception if the file doesn\'t exist', function (): void {
-    $response = (new Geocodio)
+    (new Geocodio)
         ->uploadList(
             __DIR__.'/Fixtures/not-found.csv',
             GeocodeDirection::Forward,
             '{{B}} {{C}} {{D}} {{E}}'
         );
-
-    ray('uploadList', $response);
 })->throws(GeocodioException::class, sprintf(
     'File (%s/Fixtures/not-found.csv) not found',
     __DIR__,
@@ -27,7 +26,7 @@ it('throws an exception if the file doesn\'t exist', function (): void {
 
 it('uploads a list', function (): void {
     $http = Client::create([
-        new Response(200, body: json_encode([])),
+        TestResponse::successJson(),
     ]);
 
     $geocodio = (new Geocodio($http->client()));
@@ -67,7 +66,7 @@ it('uploads a list', function (): void {
 
 it('uploads an inline list', function (): void {
     $http = Client::create([
-        new Response(200, body: json_encode([])),
+        TestResponse::successJson(),
     ]);
 
     $csvData = <<<'CSV'
@@ -123,7 +122,7 @@ it('uploads an inline list', function (): void {
 
 it('can fetch your lists', function (): void {
     $http = Client::create([
-        new Response(200, body: json_encode([])),
+        TestResponse::successJson(),
     ]);
 
     $geocodio = (new Geocodio($http->client()));
@@ -161,7 +160,7 @@ it('can delete lists', function (): void {
 
 it('can fetch list status', function (): void {
     $http = Client::create([
-        new Response(200, body: json_encode([])),
+        TestResponse::successJson(),
     ]);
 
     $geocodio = (new Geocodio($http->client()));
@@ -178,5 +177,40 @@ it('can fetch list status', function (): void {
 });
 
 it('throws exception when uploading from invalid file', function (): void {
-    $this->markTestIncomplete();
-});
+    $http = Client::create([
+        TestResponse::invalidData(),
+    ]);
+
+    $geocodio = (new Geocodio($http->client()));
+
+    $geocodio->uploadList(
+        __DIR__.'/Fixtures/invalid.csv',
+        GeocodeDirection::Forward,
+        '{{B}} {{C}} {{D}} {{E}}'
+    );
+})->throws(
+    GeocodioException::class,
+    'Request Error: Uploaded spreadsheet appears to be empty or unreadable'
+);
+
+it('throws exception when uploading from invalid inline file', function (): void {
+    $http = Client::create([
+        TestResponse::invalidData(),
+    ]);
+
+    $geocodio = (new Geocodio($http->client()));
+
+    $csvData = <<<'CSV'
+    name,street,city,state,zip
+    CSV;
+
+    $geocodio->uploadInlineList(
+        $csvData,
+        'coffee-shopts.csv',
+        GeocodeDirection::Forward,
+        '{{B}} {{C}} {{D}} {{E}}'
+    );
+})->throws(
+    GeocodioException::class,
+    'Request Error: Uploaded spreadsheet appears to be empty or unreadable'
+);

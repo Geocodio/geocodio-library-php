@@ -14,4 +14,12 @@ class GeocodioException extends Exception
             previous: $previous
         );
     }
+
+    public static function requestError(string $message, ?Throwable $previous = null): GeocodioException
+    {
+        return new GeocodioException(
+            sprintf('Request Error: %s', $message),
+            previous: $previous
+        );
+    }
 }

@@ -6,7 +6,9 @@ use Exception;
 use Geocodio\Enums\GeocodeDirection;
 use Geocodio\Exceptions\GeocodioException;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\ServerException;
 use GuzzleHttp\RequestOptions;
 use Psr\Http\Message\ResponseInterface;
 
@@ -101,34 +103,43 @@ class Geocodio
             throw GeocodioException::fileNotFound($file);
         }
 
-        $response = $this
-            ->client
-            ->post(
-                $this->formatUrl('lists'),
-                [
-                    RequestOptions::HEADERS => $this->getHeaders(),
-                    RequestOptions::QUERY => ['api_key' => $this->apiKey],
-                    RequestOptions::MULTIPART => [
-                        [
-                            'name' => 'file',
-                            'contents' => fopen($file, 'r'),
-                            'filename' => basename($file),
+        try {
+            $response = $this
+                ->client
+                ->post(
+                    $this->formatUrl('lists'),
+                    [
+                        RequestOptions::HEADERS => $this->getHeaders(),
+                        RequestOptions::QUERY => ['api_key' => $this->apiKey],
+                        RequestOptions::MULTIPART => [
+                            [
+                                'name' => 'file',
+                                'contents' => fopen($file, 'r'),
+                                'filename' => basename($file),
+                            ],
+                            [
+                                'name' => 'direction',
+                                'contents' => $direction->value,
+                            ],
+                            [
+                                'name' => 'format',
+                                'contents' => $format,
+                            ],
+                            [
+                                'name' => 'callback',
+                                'contents' => $callbackWebhook,
+                            ],
                         ],
-                        [
-                            'name' => 'direction',
-                            'contents' => $direction->value,
-                        ],
-                        [
-                            'name' => 'format',
-                            'contents' => $format,
-                        ],
-                        [
-                            'name' => 'callback',
-                            'contents' => $callbackWebhook,
-                        ],
-                    ],
-                ]
+                    ]
+                );
+        } catch (ClientException|ServerException $e) {
+            $response = json_decode($e->getResponse()->getBody(), true);
+
+            throw GeocodioException::requestError(
+                $response['error'] ?? 'unknown error',
+                $e
             );
+        }
 
         $body = (string) $response->getBody();
 
@@ -145,35 +156,44 @@ class Geocodio
         GeocodeDirection $direction,
         string $format,
         string $callbackWebhook = '',
-    ): mixed {
-        $response = $this
-            ->client
-            ->post(
-                $this->formatUrl('lists'),
-                [
-                    RequestOptions::HEADERS => $this->getHeaders(),
-                    RequestOptions::QUERY => ['api_key' => $this->apiKey],
-                    RequestOptions::MULTIPART => [
-                        [
-                            'name' => 'file',
-                            'contents' => $data,
-                            'filename' => $filename,
+    ): array {
+        try {
+            $response = $this
+                ->client
+                ->post(
+                    $this->formatUrl('lists'),
+                    [
+                        RequestOptions::HEADERS => $this->getHeaders(),
+                        RequestOptions::QUERY => ['api_key' => $this->apiKey],
+                        RequestOptions::MULTIPART => [
+                            [
+                                'name' => 'file',
+                                'contents' => $data,
+                                'filename' => $filename,
+                            ],
+                            [
+                                'name' => 'direction',
+                                'contents' => $direction->value,
+                            ],
+                            [
+                                'name' => 'format',
+                                'contents' => $format,
+                            ],
+                            [
+                                'name' => 'callback',
+                                'contents' => $callbackWebhook,
+                            ],
                         ],
-                        [
-                            'name' => 'direction',
-                            'contents' => $direction->value,
-                        ],
-                        [
-                            'name' => 'format',
-                            'contents' => $format,
-                        ],
-                        [
-                            'name' => 'callback',
-                            'contents' => $callbackWebhook,
-                        ],
-                    ],
-                ]
+                    ]
+                );
+        } catch (ClientException|ServerException $e) {
+            $response = json_decode($e->getResponse()->getBody(), true);
+
+            throw GeocodioException::requestError(
+                $response['error'] ?? 'unknown error',
+                $e
             );
+        }
 
         $body = (string) $response->getBody();
 
@@ -330,7 +350,7 @@ class Geocodio
         return true;
     }
 
-    private function performSingleRequest(string $url, $query, array $queryParameters): \Psr\Http\Message\ResponseInterface
+    private function performSingleRequest(string $url, $query, array $queryParameters): ResponseInterface
     {
         if (is_array($query)) {
             $queryParameters += $query;
