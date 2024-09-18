@@ -93,35 +93,23 @@ class Geocodio
         ?int $limit = null,
         ?string $format = null
     ): mixed {
-        if ($this->isSingleQuery($query)) {
-            $query = is_array($query)
-                ? $query
-                : ['q' => $query];
+        $options = [
+            RequestOptions::QUERY => [
+                'fields' => implode(',', $fields),
+                'limit' => $limit,
+                'format' => $format,
+            ],
+        ];
 
-            $response = $this->sendRequest(
-                'GET',
-                'geocode',
-                [
-                    RequestOptions::QUERY => array_merge([
-                        'fields' => implode(',', $fields),
-                        'limit' => $limit,
-                        'format' => $format,
-                    ], $query),
-                ]
-            );
+        if ($this->isSingleQuery($query)) {
+            $query = is_array($query) ? $query : ['q' => $query];
+            $options[RequestOptions::QUERY] = array_merge($options[RequestOptions::QUERY], $query);
+
+            $response = $this->sendRequest('GET', 'geocode', $options);
         } else {
-            $response = $this->sendRequest(
-                'POST',
-                'geocode',
-                [
-                    RequestOptions::JSON => $query,
-                    RequestOptions::QUERY => [
-                        'fields' => implode(',', $fields),
-                        'limit' => $limit,
-                        'format' => $format,
-                    ],
-                ]
-            );
+            $options[RequestOptions::JSON] = $query;
+
+            $response = $this->sendRequest('POST', 'geocode', $options);
         }
 
         return json_decode((string) $response->getBody());
@@ -137,35 +125,53 @@ class Geocodio
             throw GeocodioException::fileNotFound($file);
         }
 
-        $response = $this->sendRequest(
-            'POST',
-            'lists',
-            [
-                RequestOptions::MULTIPART => [
-                    [
-                        'name' => 'file',
-                        'contents' => fopen($file, 'r'),
-                        'filename' => basename($file),
-                    ],
-                    [
-                        'name' => 'direction',
-                        'contents' => $direction->value,
-                    ],
-                    [
-                        'name' => 'format',
-                        'contents' => $format,
-                    ],
-                    [
-                        'name' => 'callback',
-                        'contents' => $callbackWebhook,
-                    ],
-                ],
-            ]
+        $response = $this->uploadMultipartFile(
+            $file,
+            $direction,
+            $format,
+            $callbackWebhook,
         );
 
         return json_decode((string) $response->getBody(), true);
     }
 
+    private function uploadMultipartFile(
+        string $fileContents,
+        GeocodeDirection $direction,
+        string $format,
+        string $callbackWebhook,
+        ?string $filename = null
+    ): Response {
+        if (is_file($fileContents) && ! file_exists($fileContents)) {
+            throw GeocodioException::fileNotFound($fileContents);
+        }
+
+        $multipart = [
+            [
+                'name' => 'file',
+                'contents' => is_file($fileContents) ? fopen($fileContents, 'r') : $fileContents,
+                'filename' => $filename ?: basename($fileContents),
+            ],
+            [
+                'name' => 'direction',
+                'contents' => $direction->value,
+            ],
+            [
+                'name' => 'format',
+                'contents' => $format,
+            ],
+            [
+                'name' => 'callback',
+                'contents' => $callbackWebhook,
+            ],
+        ];
+
+        return $this->sendRequest('POST', 'lists', [RequestOptions::MULTIPART => $multipart]);
+    }
+
+    /**
+     * @throws GeocodioException
+     */
     protected function sendRequest(string $method, string $uri, array $options = []): Response
     {
         try {
@@ -175,18 +181,26 @@ class Geocodio
                 $this->resolveOptions($options)
             );
         } catch (Throwable $e) {
-            if ($e instanceof RequestException && $e->hasResponse()) {
-
-                $response = json_decode($e->getResponse()->getBody(), true);
-
-                throw GeocodioException::requestError(
-                    $response['error'] ?? 'unknown error',
-                    $e
-                );
-            }
-
-            throw new GeocodioException($e->getMessage(), previous: $e);
+            $this->handleException($e);
         }
+    }
+
+    /**
+     * @throws GeocodioException
+     */
+    protected function handleException(Throwable $e): void
+    {
+        if ($e instanceof RequestException && $e->hasResponse()) {
+
+            $response = json_decode($e->getResponse()->getBody(), true);
+
+            throw GeocodioException::requestError(
+                $response['error'] ?? 'unknown error',
+                $e
+            );
+        }
+
+        throw new GeocodioException($e->getMessage(), previous: $e);
     }
 
     protected function resolveOptions(array $options): array
@@ -213,30 +227,12 @@ class Geocodio
         string $format,
         string $callbackWebhook = '',
     ): array {
-        $response = $this->sendRequest(
-            'POST',
-            'lists',
-            [
-                RequestOptions::MULTIPART => [
-                    [
-                        'name' => 'file',
-                        'contents' => $data,
-                        'filename' => $filename,
-                    ],
-                    [
-                        'name' => 'direction',
-                        'contents' => $direction->value,
-                    ],
-                    [
-                        'name' => 'format',
-                        'contents' => $format,
-                    ],
-                    [
-                        'name' => 'callback',
-                        'contents' => $callbackWebhook,
-                    ],
-                ],
-            ]
+        $response = $this->uploadMultipartFile(
+            $data,
+            $direction,
+            $format,
+            $callbackWebhook,
+            $filename,
         );
 
         return json_decode((string) $response->getBody(), true);
@@ -308,32 +304,22 @@ class Geocodio
         ?int $limit = null,
         ?string $format = null
     ): mixed {
+        $options = [
+            RequestOptions::QUERY => [
+                'q' => $this->formattedReverseQuery($query),
+                'fields' => implode(',', $fields),
+                'limit' => $limit,
+                'format' => $format,
+            ],
+        ];
+
         if (is_string($query) || (is_array($query) && is_numeric($query[0]))) {
-            $response = $this->sendRequest(
-                'GET',
-                'reverse',
-                [
-                    RequestOptions::QUERY => [
-                        'q' => $this->formattedReverseQuery($query),
-                        'fields' => implode(',', $fields),
-                        'limit' => $limit,
-                        'format' => $format,
-                    ],
-                ]
-            );
+            $response = $this->sendRequest('GET', 'reverse', $options);
         } else {
-            $response = $this->sendRequest(
-                'POST',
-                'reverse',
-                [
-                    RequestOptions::JSON => array_map(fn ($query) => $this->formattedReverseQuery($query), $query),
-                    RequestOptions::QUERY => [
-                        'fields' => implode(',', $fields),
-                        'limit' => $limit,
-                        'format' => $format,
-                    ],
-                ]
-            );
+            $options[RequestOptions::JSON] = array_map(fn ($q) => $this->formattedReverseQuery($q), $query);
+
+            $response = $this->sendRequest('POST', 'reverse', $options);
+
         }
 
         return json_decode((string) $response->getBody());
