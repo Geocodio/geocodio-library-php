@@ -6,11 +6,11 @@ use Exception;
 use Geocodio\Enums\GeocodeDirection;
 use Geocodio\Exceptions\GeocodioException;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Exception\ServerException;
+use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
 use Psr\Http\Message\ResponseInterface;
+use Throwable;
 
 class Geocodio
 {
@@ -103,51 +103,73 @@ class Geocodio
             throw GeocodioException::fileNotFound($file);
         }
 
-        try {
-            $response = $this
-                ->client
-                ->post(
-                    $this->formatUrl('lists'),
+        $response = $this->sendRequest(
+            'POST',
+            'lists',
+            [
+                RequestOptions::MULTIPART => [
                     [
-                        RequestOptions::HEADERS => $this->getHeaders(),
-                        RequestOptions::QUERY => ['api_key' => $this->apiKey],
-                        RequestOptions::MULTIPART => [
-                            [
-                                'name' => 'file',
-                                'contents' => fopen($file, 'r'),
-                                'filename' => basename($file),
-                            ],
-                            [
-                                'name' => 'direction',
-                                'contents' => $direction->value,
-                            ],
-                            [
-                                'name' => 'format',
-                                'contents' => $format,
-                            ],
-                            [
-                                'name' => 'callback',
-                                'contents' => $callbackWebhook,
-                            ],
-                        ],
-                    ]
-                );
-        } catch (ClientException|ServerException $e) {
-            $response = json_decode($e->getResponse()->getBody(), true);
+                        'name' => 'file',
+                        'contents' => fopen($file, 'r'),
+                        'filename' => basename($file),
+                    ],
+                    [
+                        'name' => 'direction',
+                        'contents' => $direction->value,
+                    ],
+                    [
+                        'name' => 'format',
+                        'contents' => $format,
+                    ],
+                    [
+                        'name' => 'callback',
+                        'contents' => $callbackWebhook,
+                    ],
+                ],
+            ]
+        );
 
-            throw GeocodioException::requestError(
-                $response['error'] ?? 'unknown error',
-                $e
+        return json_decode((string) $response->getBody(), true);
+    }
+
+    protected function sendRequest(string $method, string $uri, array $options = []): Response
+    {
+        try {
+            return $this->client->request(
+                $method,
+                $this->formatUrl($uri),
+                $this->resolveOptions($options)
             );
+        } catch (Throwable $e) {
+            if ($e instanceof RequestException && $e->hasResponse()) {
+
+                $response = json_decode($e->getResponse()->getBody(), true);
+
+                throw GeocodioException::requestError(
+                    $response['error'] ?? 'unknown error',
+                    $e
+                );
+            }
+
+            throw new GeocodioException($e->getMessage(), previous: $e);
         }
+    }
 
-        $body = (string) $response->getBody();
+    protected function resolveOptions(array $options): array
+    {
+        $options[RequestOptions::QUERY] = array_merge(
+            [
+                'api_key' => $this->apiKey,
+            ],
+            $options[RequestOptions::QUERY] ?? [],
+        );
 
-        if (! json_validate($body)) {
-            throw new Exception('Invalid json returned from request');
-        }
+        $options[RequestOptions::HEADERS] = array_merge(
+            $this->getHeaders(),
+            $options[RequestOptions::HEADERS] ?? [],
+        );
 
-        return json_decode($body, true);
+        return $options;
     }
 
     public function uploadInlineList(
@@ -157,147 +179,87 @@ class Geocodio
         string $format,
         string $callbackWebhook = '',
     ): array {
-        try {
-            $response = $this
-                ->client
-                ->post(
-                    $this->formatUrl('lists'),
+        $response = $this->sendRequest(
+            'POST',
+            'lists',
+            [
+                RequestOptions::MULTIPART => [
                     [
-                        RequestOptions::HEADERS => $this->getHeaders(),
-                        RequestOptions::QUERY => ['api_key' => $this->apiKey],
-                        RequestOptions::MULTIPART => [
-                            [
-                                'name' => 'file',
-                                'contents' => $data,
-                                'filename' => $filename,
-                            ],
-                            [
-                                'name' => 'direction',
-                                'contents' => $direction->value,
-                            ],
-                            [
-                                'name' => 'format',
-                                'contents' => $format,
-                            ],
-                            [
-                                'name' => 'callback',
-                                'contents' => $callbackWebhook,
-                            ],
-                        ],
-                    ]
-                );
-        } catch (ClientException|ServerException $e) {
-            $response = json_decode($e->getResponse()->getBody(), true);
+                        'name' => 'file',
+                        'contents' => $data,
+                        'filename' => $filename,
+                    ],
+                    [
+                        'name' => 'direction',
+                        'contents' => $direction->value,
+                    ],
+                    [
+                        'name' => 'format',
+                        'contents' => $format,
+                    ],
+                    [
+                        'name' => 'callback',
+                        'contents' => $callbackWebhook,
+                    ],
+                ],
+            ]
+        );
 
-            throw GeocodioException::requestError(
-                $response['error'] ?? 'unknown error',
-                $e
-            );
-        }
-
-        $body = (string) $response->getBody();
-
-        if (! json_validate($body)) {
-            throw new Exception('Invalid json returned from request');
-        }
-
-        return json_decode($body, true);
+        return json_decode((string) $response->getBody(), true);
     }
 
     public function listStatus(int $listId): mixed
     {
-        $response = $this
-            ->client
-            ->get(
-                $this->formatUrl("lists/{$listId}"),
-                [
-                    RequestOptions::HEADERS => $this->getHeaders(),
-                    RequestOptions::QUERY => ['api_key' => $this->apiKey],
-                ]
-            );
+        $response = $this->sendRequest(
+            'GET',
+            "lists/{$listId}",
+        );
 
-        $body = (string) $response->getBody();
-
-        if (! json_validate($body)) {
-            throw new Exception('Invalid json returned from uploadList');
-        }
-
-        return json_decode($body, true);
+        return json_decode((string) $response->getBody(), true);
     }
 
     public function lists(): mixed
     {
-        $response = $this
-            ->client
-            ->get(
-                $this->formatUrl('lists'),
-                [
-                    RequestOptions::HEADERS => $this->getHeaders(),
-                    RequestOptions::QUERY => ['api_key' => $this->apiKey],
-                ]
-            );
+        $response = $this->sendRequest(
+            'GET',
+            'lists',
+        );
 
-        $body = (string) $response->getBody();
-
-        if (! json_validate($body)) {
-            throw new Exception('Invalid json returned from uploadList');
-        }
-
-        return json_decode($body, true);
-
+        return json_decode((string) $response->getBody(), true);
     }
 
     public function downloadList(int $listId, string $filePath): void
     {
-        try {
-            $response = $this->client->get($this->formatUrl("lists/{$listId}/download"), [
-                RequestOptions::HEADERS => $this->getHeaders(),
-                RequestOptions::QUERY => ['api_key' => $this->apiKey],
+        $response = $this->sendRequest(
+            'GET',
+            "lists/{$listId}/download",
+            [
                 RequestOptions::STREAM => true,
-            ]);
+            ]
+        );
 
-            $body = $response->getBody();
+        $body = $response->getBody();
 
-            if (! $fileHandle = fopen($filePath, 'w')) {
-                throw new Exception("Unable to open file for writing: {$filePath}");
-            }
-
-            while (! $body->eof()) {
-                $chunk = $body->read(8192); // Read in 8KB chunks
-                fwrite($fileHandle, $chunk);
-            }
-
-            fclose($fileHandle);
-        } catch (ClientException|ServerException $e) {
-            $errorResponse = json_decode($e->getResponse()->getBody(), true);
-            throw GeocodioException::requestError(
-                $errorResponse['error'] ?? 'Error downloading list',
-                $e
-            );
-        } catch (Exception $e) {
-            throw new GeocodioException('Error downloading list: '.$e->getMessage(), 0, $e);
+        if (! $fileHandle = fopen($filePath, 'w')) {
+            throw new Exception("Unable to open file for writing: {$filePath}");
         }
+
+        while (! $body->eof()) {
+            $chunk = $body->read(8192); // Read in 8KB chunks
+            fwrite($fileHandle, $chunk);
+        }
+
+        fclose($fileHandle);
     }
 
     public function deleteList(int $listId): mixed
     {
-        $response = $this
-            ->client
-            ->delete(
-                $this->formatUrl("lists/{$listId}"),
-                [
-                    RequestOptions::HEADERS => $this->getHeaders(),
-                    RequestOptions::QUERY => ['api_key' => $this->apiKey],
-                ]
-            );
+        $response = $this->sendRequest(
+            'DELETE',
+            "lists/{$listId}",
+        );
 
-        $body = (string) $response->getBody();
-
-        if (! json_validate($body)) {
-            throw new Exception('Invalid json returned from uploadList');
-        }
-
-        return json_decode($body, true);
+        return json_decode((string) $response->getBody(), true);
     }
 
     /**

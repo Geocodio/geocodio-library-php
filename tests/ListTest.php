@@ -41,8 +41,13 @@ it('uploads a list', function (): void {
 
     expect($history)->toHaveCount(1);
 
+    /** @var Request $request */
     $request = $history[0]['request'];
     $body = (string) $request->getBody();
+
+    // Assert the API key is being sent
+    parse_str($request->getUri()->getQuery(), $query);
+    expect($query['api_key'])->toBeString();
 
     // Assert that the request is a POST request
     expect($request->getMethod())->toBe('POST');
@@ -91,6 +96,10 @@ it('uploads an inline list', function (): void {
     $request = $history[0]['request'];
     $body = (string) $request->getBody();
 
+    // Assert the API key is being sent
+    parse_str((string) $request->getUri()->getQuery(), $query);
+    expect($query['api_key'])->toBeString();
+
     // Assert that the request is a POST request
     expect($request->getMethod())->toBe('POST');
     expect($request->getUri()->getPath())
@@ -134,9 +143,16 @@ it('can fetch your lists', function (): void {
     /** @var Request */
     $request = $http->history()[0]['request'];
 
-    expect($request->getMethod())->toBe('GET');
+    // Assert the API key is being sent
+    parse_str($request->getUri()->getQuery(), $query);
+    expect($query['api_key'])->toBeString();
+
+    // Assert path and method
     expect($request->getUri()->getPath())
         ->toBe(sprintf('/%s/lists', $geocodio->apiVersion()));
+    expect($request->getMethod())->toBe('GET');
+
+    // Assert nothing is sent in the body
     expect((string) $request->getBody())->toBeEmpty();
 });
 
@@ -152,9 +168,16 @@ it('can delete lists', function (): void {
     /** @var Request */
     $request = $http->history()[0]['request'];
 
+    // Assert the API key is being sent
+    parse_str($request->getUri()->getQuery(), $query);
+    expect($query['api_key'])->toBeString();
+
+    // Assert path and method
     expect($request->getMethod())->toBe('DELETE');
     expect($request->getUri()->getPath())
         ->toBe(sprintf('/%s/lists/11950669', $geocodio->apiVersion()));
+
+    // Assert nothing is sent in the body
     expect((string) $request->getBody())->toBeEmpty();
 });
 
@@ -170,9 +193,16 @@ it('can fetch list status', function (): void {
     /** @var Request */
     $request = $http->history()[0]['request'];
 
+    // Assert the API key is being sent
+    parse_str($request->getUri()->getQuery(), $query);
+    expect($query['api_key'])->toBeString();
+
+    // Assert method and path
     expect($request->getMethod())->toBe('GET');
     expect($request->getUri()->getPath())
         ->toBe(sprintf('/%s/lists/11950669', $geocodio->apiVersion()));
+
+    // Assert no body is sent
     expect((string) $request->getBody())->toBeEmpty();
 });
 
@@ -230,8 +260,21 @@ it('can download a list to a location', function (): void {
 
     $geocodio->downloadList(11951418, $path);
 
+    $history = $http->history();
+
+    expect($history)->toHaveCount(1);
+
+    /** @var Request $request */
+    $request = $history[0]['request'];
+
+    // Assert the API key is being sent
+    parse_str($request->getUri()->getQuery(), $query);
+    expect($query['api_key'])->toBeString();
+
+    // Assert file contents
     expect($path)->toBeFile();
     expect(file_get_contents($path))->toBe($contents);
 
+    // Cleanup temp file
     unlink($path);
 });
