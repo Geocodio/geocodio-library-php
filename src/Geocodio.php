@@ -9,7 +9,6 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
-use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
 class Geocodio
@@ -88,9 +87,44 @@ class Geocodio
      * @param  string|array  $query
      * @return array|object
      */
-    public function geocode($query, array $fields = [], ?int $limit = null, ?string $format = null): mixed
-    {
-        return $this->handleRequest('geocode', $query, $fields, $limit, $format);
+    public function geocode(
+        $query,
+        array $fields = [],
+        ?int $limit = null,
+        ?string $format = null
+    ): mixed {
+        if ($this->isSingleQuery($query)) {
+            $query = is_array($query)
+                ? $query
+                : ['q' => $query];
+
+            $response = $this->sendRequest(
+                'GET',
+                'geocode',
+                [
+                    RequestOptions::QUERY => array_merge([
+                        'fields' => implode(',', $fields),
+                        'limit' => $limit,
+                        'format' => $format,
+                    ], $query),
+                ]
+            );
+        } else {
+            $response = $this->sendRequest(
+                'POST',
+                'geocode',
+                [
+                    RequestOptions::JSON => $query,
+                    RequestOptions::QUERY => [
+                        'fields' => implode(',', $fields),
+                        'limit' => $limit,
+                        'format' => $format,
+                    ],
+                ]
+            );
+        }
+
+        return json_decode((string) $response->getBody());
     }
 
     public function uploadList(
@@ -157,12 +191,12 @@ class Geocodio
 
     protected function resolveOptions(array $options): array
     {
-        $options[RequestOptions::QUERY] = array_merge(
+        $options[RequestOptions::QUERY] = array_filter(array_merge(
             [
                 'api_key' => $this->apiKey,
             ],
             $options[RequestOptions::QUERY] ?? [],
-        );
+        ));
 
         $options[RequestOptions::HEADERS] = array_merge(
             $this->getHeaders(),
@@ -274,35 +308,35 @@ class Geocodio
         ?int $limit = null,
         ?string $format = null
     ): mixed {
-        return $this->handleRequest('reverse', $query, $fields, $limit, $format);
-    }
-
-    private function handleRequest(string $endpoint, $query, array $fields = [], ?int $limit = null, ?string $format = null): mixed
-    {
-        $url = $this->formatUrl($endpoint);
-
-        $queryParameters = array_filter([
-            'api_key' => $this->apiKey,
-            'fields' => implode(',', $fields),
-            'limit' => $limit,
-            'format' => $format,
-        ]);
-
-        $query = $this->preprocessQuery($query, $endpoint);
-
-        try {
-            if ($this->isSingleQuery($query)) {
-                $response = $this->performSingleRequest($url, $query, $queryParameters);
-            } else {
-                $query = array_map(fn ($item) => $this->preprocessQuery($item, $endpoint), $query);
-
-                $response = $this->performBatchRequest($url, $query, $queryParameters);
-            }
-        } catch (Exception $e) {
-            $this->handleException($e);
+        if (is_string($query) || (is_array($query) && is_numeric($query[0]))) {
+            $response = $this->sendRequest(
+                'GET',
+                'reverse',
+                [
+                    RequestOptions::QUERY => [
+                        'q' => $this->formattedReverseQuery($query),
+                        'fields' => implode(',', $fields),
+                        'limit' => $limit,
+                        'format' => $format,
+                    ],
+                ]
+            );
+        } else {
+            $response = $this->sendRequest(
+                'POST',
+                'reverse',
+                [
+                    RequestOptions::JSON => array_map(fn ($query) => $this->formattedReverseQuery($query), $query),
+                    RequestOptions::QUERY => [
+                        'fields' => implode(',', $fields),
+                        'limit' => $limit,
+                        'format' => $format,
+                    ],
+                ]
+            );
         }
 
-        return $this->formatResponse($response);
+        return json_decode((string) $response->getBody());
     }
 
     private function formatUrl(string $endpoint): string
@@ -314,10 +348,9 @@ class Geocodio
         ]);
     }
 
-    private function preprocessQuery($query, string $endpoint)
+    private function formattedReverseQuery($query)
     {
-        // Convert lat/lon array to a comma-separated string
-        if ($endpoint === 'reverse' && is_array($query) && count($query) === 2) {
+        if (is_array($query) && count($query) === 2) {
             [$latitude, $longitude] = $query;
 
             if (is_numeric($latitude) && is_numeric($longitude)) {
@@ -337,54 +370,6 @@ class Geocodio
         }
 
         return true;
-    }
-
-    private function performSingleRequest(string $url, $query, array $queryParameters): ResponseInterface
-    {
-        if (is_array($query)) {
-            $queryParameters += $query;
-        } else {
-            $queryParameters['q'] = $query;
-        }
-
-        return $this->client->get($url, [
-            'query' => $queryParameters,
-            'headers' => $this->getHeaders(),
-        ]);
-    }
-
-    private function performBatchRequest(string $url, array $queries, array $queryParameters): \Psr\Http\Message\ResponseInterface
-    {
-        return $this->client->post($url, [
-            'query' => $queryParameters,
-            'json' => $queries,
-            'headers' => $this->getHeaders(),
-        ]);
-    }
-
-    private function handleException(\Throwable $e): void
-    {
-        $response = $e instanceof RequestException && $e->hasResponse() ? $e->getResponse() : null;
-
-        $errorMessage = 'Error';
-        $errorCode = 0;
-
-        if ($response instanceof \Psr\Http\Message\ResponseInterface) {
-            $json = @json_decode((string) $response->getBody());
-
-            if ($json && isset($json->error)) {
-                $errorMessage = $json->error;
-            }
-
-            $errorCode = $response->getStatusCode();
-        }
-
-        throw new GeocodioException($errorMessage, $errorCode, $e);
-    }
-
-    private function formatResponse(ResponseInterface $response): mixed
-    {
-        return json_decode((string) $response->getBody());
     }
 
     private function getHeaders(): array
