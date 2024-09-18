@@ -3,16 +3,17 @@
 namespace Geocodio;
 
 use Exception;
+use Geocodio\Concerns\SendsRequests;
 use Geocodio\Enums\GeocodeDirection;
 use Geocodio\Exceptions\GeocodioException;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
-use Throwable;
 
 class Geocodio
 {
+    use SendsRequests;
+
     /**
      * @var string Geocodio API Key
      *
@@ -40,6 +41,9 @@ class Geocodio
         'country',
     ];
 
+    /**
+     * @var Current SDK version
+     */
     const SDK_VERSION = '1.2.0';
 
     public function __construct(private readonly Client $client = new Client)
@@ -53,11 +57,6 @@ class Geocodio
         if ($apiVersion = getenv('GEOCODIO_API_VERSION')) {
             $this->apiVersion = $apiVersion;
         }
-    }
-
-    public function apiVersion(): string
-    {
-        return $this->apiVersion;
     }
 
     public function setApiKey(string $apiKey): self
@@ -81,8 +80,15 @@ class Geocodio
         return $this;
     }
 
+    public function apiVersion(): string
+    {
+        return $this->apiVersion;
+    }
+
     /**
      * Forward geocode an address or a list of addresses
+     *
+     * @see https://www.geocod.io/docs/#geocoding
      *
      * @param  string|array  $query
      * @return array|object
@@ -115,6 +121,11 @@ class Geocodio
         return json_decode((string) $response->getBody());
     }
 
+    /**
+     * Upload a list using a file on disk
+     *
+     * @see https://www.geocod.io/docs/#create-a-new-list
+     */
     public function uploadList(
         string $file,
         GeocodeDirection $direction,
@@ -133,6 +144,149 @@ class Geocodio
         );
 
         return json_decode((string) $response->getBody(), true);
+    }
+
+    /**
+     * Upload a list using inline data
+     *
+     * @see https://www.geocod.io/docs/#create-a-new-list
+     */
+    public function uploadInlineList(
+        string $data,
+        string $filename,
+        GeocodeDirection $direction,
+        string $format,
+        string $callbackWebhook = '',
+    ): array {
+        $response = $this->uploadMultipartFile(
+            $data,
+            $direction,
+            $format,
+            $callbackWebhook,
+            $filename,
+        );
+
+        return json_decode((string) $response->getBody(), true);
+    }
+
+    /**
+     * Get the status of an uploaded list
+     *
+     * @see https://www.geocod.io/docs/#see-list-status
+     */
+    public function listStatus(int $listId): mixed
+    {
+        $response = $this->sendRequest(
+            'GET',
+            "lists/{$listId}",
+        );
+
+        return json_decode((string) $response->getBody(), true);
+    }
+
+    /**
+     * Show all uploaded lists
+     *
+     * @see https://www.geocod.io/docs/#show-all-lists
+     */
+    public function lists(): mixed
+    {
+        $response = $this->sendRequest(
+            'GET',
+            'lists',
+        );
+
+        return json_decode((string) $response->getBody(), true);
+    }
+
+    /**
+     * Download a previsouly uploaded list that has been processed
+     *
+     * @see https://www.geocod.io/docs/#download-a-list
+     */
+    public function downloadList(int $listId, string $filePath): void
+    {
+        $response = $this->sendRequest(
+            'GET',
+            "lists/{$listId}/download",
+            [
+                RequestOptions::STREAM => true,
+            ]
+        );
+
+        $body = $response->getBody();
+
+        if (! $fileHandle = fopen($filePath, 'w')) {
+            throw new Exception("Unable to open file for writing: {$filePath}");
+        }
+
+        while (! $body->eof()) {
+            $chunk = $body->read(8192);
+            fwrite($fileHandle, $chunk);
+        }
+
+        fclose($fileHandle);
+    }
+
+    /**
+     * Delete a previously uploaded list
+     *
+     * @see https://www.geocod.io/docs/#delete-a-list
+     */
+    public function deleteList(int $listId): mixed
+    {
+        $response = $this->sendRequest(
+            'DELETE',
+            "lists/{$listId}",
+        );
+
+        return json_decode((string) $response->getBody(), true);
+    }
+
+    /**
+     * Reverse geocode a coordinate or a list of coordinates
+     *
+     * @see https://www.geocod.io/docs/#reverse-geocoding
+     *
+     * @param  string|array  $query
+     * @return array|object
+     */
+    public function reverse(
+        $query,
+        array $fields = [],
+        ?int $limit = null,
+        ?string $format = null
+    ): mixed {
+        $options = [
+            RequestOptions::QUERY => [
+                'q' => $this->formattedReverseQuery($query),
+                'fields' => implode(',', $fields),
+                'limit' => $limit,
+                'format' => $format,
+            ],
+        ];
+
+        if (is_string($query) || (is_array($query) && is_numeric($query[0]))) {
+            $response = $this->sendRequest('GET', 'reverse', $options);
+        } else {
+            $options[RequestOptions::JSON] = array_map(fn ($q) => $this->formattedReverseQuery($q), $query);
+
+            $response = $this->sendRequest('POST', 'reverse', $options);
+
+        }
+
+        return json_decode((string) $response->getBody());
+    }
+
+    protected function isSingleQuery($query): bool
+    {
+        if (is_array($query)) {
+            $addressComponentKeys = array_intersect(array_keys($query), self::ADDRESS_COMPONENT_PARAMETERS);
+
+            return count($addressComponentKeys) >= 1;
+        }
+
+        return true;
     }
 
     protected function uploadMultipartFile(
@@ -167,202 +321,5 @@ class Geocodio
         ];
 
         return $this->sendRequest('POST', 'lists', [RequestOptions::MULTIPART => $multipart]);
-    }
-
-    /**
-     * @throws GeocodioException
-     */
-    protected function sendRequest(string $method, string $uri, array $options = []): Response
-    {
-        try {
-            return $this->client->request(
-                $method,
-                $this->formatUrl($uri),
-                $this->resolveOptions($options)
-            );
-        } catch (Throwable $e) {
-            $this->handleException($e);
-        }
-    }
-
-    /**
-     * @throws GeocodioException
-     */
-    protected function handleException(Throwable $e): void
-    {
-        if ($e instanceof RequestException && $e->hasResponse()) {
-
-            $response = json_decode($e->getResponse()->getBody(), true);
-
-            throw GeocodioException::requestError(
-                $response['error'] ?? 'unknown error',
-                $e
-            );
-        }
-
-        throw new GeocodioException($e->getMessage(), previous: $e);
-    }
-
-    protected function resolveOptions(array $options): array
-    {
-        $options[RequestOptions::QUERY] = array_filter(array_merge(
-            [
-                'api_key' => $this->apiKey,
-            ],
-            $options[RequestOptions::QUERY] ?? [],
-        ));
-
-        $options[RequestOptions::HEADERS] = array_merge(
-            $this->getHeaders(),
-            $options[RequestOptions::HEADERS] ?? [],
-        );
-
-        return $options;
-    }
-
-    public function uploadInlineList(
-        string $data,
-        string $filename,
-        GeocodeDirection $direction,
-        string $format,
-        string $callbackWebhook = '',
-    ): array {
-        $response = $this->uploadMultipartFile(
-            $data,
-            $direction,
-            $format,
-            $callbackWebhook,
-            $filename,
-        );
-
-        return json_decode((string) $response->getBody(), true);
-    }
-
-    public function listStatus(int $listId): mixed
-    {
-        $response = $this->sendRequest(
-            'GET',
-            "lists/{$listId}",
-        );
-
-        return json_decode((string) $response->getBody(), true);
-    }
-
-    public function lists(): mixed
-    {
-        $response = $this->sendRequest(
-            'GET',
-            'lists',
-        );
-
-        return json_decode((string) $response->getBody(), true);
-    }
-
-    public function downloadList(int $listId, string $filePath): void
-    {
-        $response = $this->sendRequest(
-            'GET',
-            "lists/{$listId}/download",
-            [
-                RequestOptions::STREAM => true,
-            ]
-        );
-
-        $body = $response->getBody();
-
-        if (! $fileHandle = fopen($filePath, 'w')) {
-            throw new Exception("Unable to open file for writing: {$filePath}");
-        }
-
-        while (! $body->eof()) {
-            $chunk = $body->read(8192); // Read in 8KB chunks
-            fwrite($fileHandle, $chunk);
-        }
-
-        fclose($fileHandle);
-    }
-
-    public function deleteList(int $listId): mixed
-    {
-        $response = $this->sendRequest(
-            'DELETE',
-            "lists/{$listId}",
-        );
-
-        return json_decode((string) $response->getBody(), true);
-    }
-
-    /**
-     * Reverse geocode a coordinate or a list of coordinates
-     *
-     * @param  string|array  $query
-     * @return array|object
-     */
-    public function reverse(
-        $query,
-        array $fields = [],
-        ?int $limit = null,
-        ?string $format = null
-    ): mixed {
-        $options = [
-            RequestOptions::QUERY => [
-                'q' => $this->formattedReverseQuery($query),
-                'fields' => implode(',', $fields),
-                'limit' => $limit,
-                'format' => $format,
-            ],
-        ];
-
-        if (is_string($query) || (is_array($query) && is_numeric($query[0]))) {
-            $response = $this->sendRequest('GET', 'reverse', $options);
-        } else {
-            $options[RequestOptions::JSON] = array_map(fn ($q) => $this->formattedReverseQuery($q), $query);
-
-            $response = $this->sendRequest('POST', 'reverse', $options);
-
-        }
-
-        return json_decode((string) $response->getBody());
-    }
-
-    protected function formatUrl(string $endpoint): string
-    {
-        return vsprintf('https://%s/%s/%s', [
-            $this->hostname,
-            $this->apiVersion,
-            $endpoint,
-        ]);
-    }
-
-    protected function formattedReverseQuery($query)
-    {
-        if (is_array($query) && count($query) === 2) {
-            [$latitude, $longitude] = $query;
-
-            if (is_numeric($latitude) && is_numeric($longitude)) {
-                return $latitude.','.$longitude;
-            }
-        }
-
-        return $query;
-    }
-
-    protected function isSingleQuery($query): bool
-    {
-        if (is_array($query)) {
-            $addressComponentKeys = array_intersect(array_keys($query), self::ADDRESS_COMPONENT_PARAMETERS);
-
-            return count($addressComponentKeys) >= 1;
-        }
-
-        return true;
-    }
-
-    protected function getHeaders(): array
-    {
-        return [
-            'User-Agent' => sprintf('geocodio-library-php/%s', self::SDK_VERSION),
-            'Accept' => 'application/json',
-        ];
     }
 }
