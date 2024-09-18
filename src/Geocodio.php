@@ -135,7 +135,7 @@ class Geocodio
         return json_decode((string) $response->getBody(), true);
     }
 
-    private function uploadMultipartFile(
+    protected function uploadMultipartFile(
         string $fileContents,
         GeocodeDirection $direction,
         string $format,
@@ -325,7 +325,7 @@ class Geocodio
         return json_decode((string) $response->getBody());
     }
 
-    private function formatUrl(string $endpoint): string
+    protected function formatUrl(string $endpoint): string
     {
         return vsprintf('https://%s/%s/%s', [
             $this->hostname,
@@ -334,7 +334,7 @@ class Geocodio
         ]);
     }
 
-    private function formattedReverseQuery($query)
+    protected function formattedReverseQuery($query)
     {
         if (is_array($query) && count($query) === 2) {
             [$latitude, $longitude] = $query;
@@ -347,7 +347,7 @@ class Geocodio
         return $query;
     }
 
-    private function isSingleQuery($query): bool
+    protected function isSingleQuery($query): bool
     {
         if (is_array($query)) {
             $addressComponentKeys = array_intersect(array_keys($query), self::ADDRESS_COMPONENT_PARAMETERS);
@@ -358,7 +358,7 @@ class Geocodio
         return true;
     }
 
-    private function getHeaders(): array
+    protected function getHeaders(): array
     {
         return [
             'User-Agent' => sprintf('geocodio-library-php/%s', self::SDK_VERSION),
