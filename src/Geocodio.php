@@ -118,7 +118,7 @@ class Geocodio
             $response = $this->sendRequest('POST', 'geocode', $options);
         }
 
-        return json_decode((string) $response->getBody());
+        return $this->toResponse($response);
     }
 
     /**
@@ -143,7 +143,7 @@ class Geocodio
             $callbackWebhook,
         );
 
-        return json_decode((string) $response->getBody(), true);
+        return $this->toResponse($response);
     }
 
     /**
@@ -166,7 +166,8 @@ class Geocodio
             $filename,
         );
 
-        return json_decode((string) $response->getBody(), true);
+        return $this->toResponse($response);
+
     }
 
     /**
@@ -181,7 +182,7 @@ class Geocodio
             "lists/{$listId}",
         );
 
-        return json_decode((string) $response->getBody(), true);
+        return $this->toResponse($response);
     }
 
     /**
@@ -196,7 +197,7 @@ class Geocodio
             'lists',
         );
 
-        return json_decode((string) $response->getBody(), true);
+        return $this->toResponse($response);
     }
 
     /**
@@ -240,7 +241,7 @@ class Geocodio
             "lists/{$listId}",
         );
 
-        return json_decode((string) $response->getBody(), true);
+        return $this->toResponse($response);
     }
 
     /**
@@ -275,7 +276,8 @@ class Geocodio
 
         }
 
-        return json_decode((string) $response->getBody());
+        return $this->toResponse($response);
+
     }
 
     protected function isSingleQuery($query): bool
@@ -321,5 +323,10 @@ class Geocodio
         ];
 
         return $this->sendRequest('POST', 'lists', [RequestOptions::MULTIPART => $multipart]);
+    }
+
+    protected function toResponse(Response $response): array
+    {
+        return json_decode((string) $response->getBody(), true);
     }
 }
