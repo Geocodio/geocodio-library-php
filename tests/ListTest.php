@@ -194,6 +194,7 @@ describe('Requests', function (): void {
         // Assert no body is sent
         expect((string) $request->getBody())->toBeEmpty();
     });
+
     it('can download a list to a location', function (): void {
         $temp = tmpfile();
         $path = stream_get_meta_data($temp)['uri'];

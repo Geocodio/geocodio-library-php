@@ -45,67 +45,45 @@ $geocoder->setApiKey('YOUR_API_KEY');
 $response = $geocoder->geocode('1109 N Highland St, Arlington, VA');
 dump($response);
 /*
-{
-  "input": {
-    "address_components": {
-      "number": "1109"                                                       
-      "predirectional": "N"                                                   
-      "street": "Highland"                                                   
-      "suffix": "St"                                                    
-      "formatted_street": "N Highland St"                                     
-      "city": "Arlington"                                                     
-      "state": "VA"                                                           
-      "country": "US"                                                         
-    }                                                                        
-    "formatted_address": "1109 N Highland St, Arlington, VA"                
-  }             
-  "results": array:2 [                                                         
-    0 => {
-      "address_components": {
-        "number": "1109"                                                       
-        "predirectional": "N"
-        "street": "Highland"   
-        "suffix": "St"
-        "formatted_street": "N Highland St"
-        "city": "Arlington"
-        "county": "Arlington County"
-        "state": "VA"
-        "zip": "22201"
-        "country": "US"
-      }
-      "formatted_address": "1109 N Highland St, Arlington, VA 22201"
-      "location": {
-        "lat": 38.886672
-        "lng": -77.094735
-      }
-      "accuracy": 1
-      "accuracy_type": "rooftop"
-      "source": "Arlington"
-    }
-    1 => {
-      "address_components": {
-        "number": "1109"
-        "predirectional": "N"
-        "street": "Highland"
-        "suffix": "St"
-        "formatted_street": "N Highland St"
-        "city": "Arlington"
-        "county": "Arlington County"
-        "state": "VA"
-        "zip": "22201"
-        "country": "US"
-      }
-      "formatted_address": "1109 N Highland St, Arlington, VA 22201"
-      "location": {
-        "lat": 38.886665
-        "lng": -77.094733
-      }
-      "accuracy": 1
-      "accuracy_type": "rooftop"
-      "source": "Virginia Geographic Information Network (VGIN)"
-    }
+array:2 [
+  "input" => array:2 [
+    "address_components" => array:8 [
+      "number" => "1109"
+      "predirectional" => "N"
+      "street" => "Highland"
+      "suffix" => "St"
+      "formatted_street" => "N Highland St"
+      "city" => "Arlington"
+      "state" => "VA"
+      "country" => "US"
+    ]
+    "formatted_address" => "1109 N Highland St, Arlington, VA"
   ]
-}
+  "results" => array:1 [
+    0 => array:6 [
+      "address_components" => array:10 [
+        "number" => "1109"
+        "predirectional" => "N"
+        "street" => "Highland"
+        "suffix" => "St"
+        "formatted_street" => "N Highland St"
+        "city" => "Arlington"
+        "county" => "Arlington County"
+        "state" => "VA"
+        "zip" => "22201"
+        "country" => "US"
+      ]
+      "formatted_address" => "1109 N Highland St, Arlington, VA 22201"
+      "location" => array:2 [
+        "lat" => 38.886672
+        "lng" => -77.094735
+      ]
+      "accuracy" => 1
+      "accuracy_type" => "rooftop"
+      "source" => "Arlington"
+    ]
+  ]
+]
 */
 
 $response = $geocoder->reverse('38.9002898,-76.9990361');
@@ -199,6 +177,65 @@ Optionally limit the number of maximum geocoding results by using the third para
 ```php
 $response = $geocoder->geocode('1109 N Highland St, Arlington, VA', [], 1); // Only get the first result
 $response = $geocoder->reverse('38.9002898,-76.9990361', ['timezone'], 5); // Return up to 5 geocoding results
+```
+
+### Uploading Lists
+
+> [!IMPORTANT]
+> Data for spreadsheets processed through the lists API are automatically deleted 72 hours after they have finished processing. In addition to a 1GB file size limit, we recommend a maximum of 10M lookups per list batch. Larger batches should be split up into multiple list jobs.
+
+See the [API docs for geocoding lists](https://www.geocod.io/docs/#geocoding-lists) for additional details.
+
+#### Upload list from a file
+
+```php
+$response = $geocoder->uploadList(
+    file: 'path/to/file.csv',
+    direction: GeocodeDirection::Forward,
+    format: '{{B}} {{C}} {{D}} {{E}}',
+    callbackWebhook: 'https://example.com/callbacks/list-upload',
+);
+```
+
+#### Upload list of inline data
+
+```php
+$csvData = <<<'CSV'
+name,street,city,state,zip
+"Peregrine Espresso","660 Pennsylvania Ave SE",Washington,DC,20003
+"Lot 38 Espresso Bar","1001 2nd St SE",Washington,DC,20003
+CSV;
+
+$geocodio->uploadInlineList(
+    $csvData,
+    'coffee-shops.csv',
+    GeocodeDirection::Forward,
+    '{{B}} {{C}} {{D}} {{E}}'
+);
+```
+
+#### List processing status
+
+```php
+$geocoder->listStatus(11950669);
+```
+
+#### Download a list
+
+```php
+$geocoder->downloadList(11950669, 'path/to/file.csv');
+```
+
+#### Fetch all uploaded lists
+
+```php
+$geocoder->lists();
+```
+
+#### Delete uploaded list
+
+```php
+$geocoder->deleteList(11950669);
 ```
 
 ## Usage with Laravel
