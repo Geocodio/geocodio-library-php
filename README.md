@@ -188,12 +188,15 @@ $response = $geocoder->reverse('38.9002898,-76.9990361', ['timezone'], 5); // Re
 
 ### Uploading Lists
 
+The lists API lets you upload and process spreadsheet with addresses or coordinates. Similar to the spreadsheet feature in the dashboard, the spreadsheet will be processed as a job on Geocodio's infrastructure and can be downloaded at a later time. While a spreadsheet is being processed it is possible to query the status and progress.
+
 > [!IMPORTANT]
 > Data for spreadsheets processed through the lists API are automatically deleted 72 hours after they have finished processing. In addition to a 1GB file size limit, we recommend a maximum of 10M lookups per list batch. Larger batches should be split up into multiple list jobs.
 
 See the [API docs for geocoding lists](https://www.geocod.io/docs/#geocoding-lists) for additional details.
 
 #### Upload list from a file
+Creates a new spreadsheet list job and starts processing the list in the background. The response returns a list id that can be used to retrieve the job progress as well as download the processed list when it has completed.
 
 ```php
 $response = $geocoder->uploadList(
@@ -202,6 +205,23 @@ $response = $geocoder->uploadList(
     format: '{{B}} {{C}} {{D}} {{E}}',
     callbackWebhook: 'https://example.com/callbacks/list-upload',
 );
+
+/*
+array:2 [
+  "id" => 11953719
+  "file" => array:3 [
+    "headers" => array:5 [
+      0 => "Name"
+      1 => "Address"
+      2 => "City"
+      3 => "State"
+      4 => "Zip"
+    ]
+    "estimated_rows_count" => 4
+    "filename" => "simple.csv"
+  ]
+]
+*/
 ```
 
 #### Upload list of inline data
@@ -221,25 +241,84 @@ $geocodio->uploadInlineList(
 );
 ```
 
-#### List processing status
+#### List status
+View the metadata and status for a single uploaded list.
 
 ```php
 $geocoder->listStatus(11950669);
+
+/*
+array:6 [
+  "id" => 11953719
+  "fields" => []
+  "file" => array:2 [
+    "estimated_rows_count" => 4
+    "filename" => "simple.csv"
+  ]
+  "status" => array:5 [
+    "state" => "COMPLETED"
+    "progress" => 100
+    "message" => "Completed"
+    "time_left_description" => null
+    "time_left_seconds" => null
+  ]
+  "download_url" => "https://api.geocod.io/v1.7/lists/11953719/download"
+  "expires_at" => "2024-09-22T20:36:10.000000Z"
+]
+*/
 ```
 
 #### Download a list
+Download a fully geocoded list, the returned format will always be a UTF-8 encoded, comma-separated csv file.
 
 ```php
 $geocoder->downloadList(11950669, 'path/to/file.csv');
 ```
 
 #### Fetch all uploaded lists
+Show all lists that have been created. The endpoint is paginated, showing 15 lists at a time, ordered by recency.
 
 ```php
 $geocoder->lists();
+
+/*
+array:9 [
+  "current_page" => 1
+  "data" => array:1 [
+    0 => array:6 [
+      "id" => 11953719
+      "fields" => []
+      "file" => array:2 [
+        "estimated_rows_count" => 4
+        "filename" => "simple.csv"
+      ]
+      "status" => array:5 [
+        "state" => "COMPLETED"
+        "progress" => 100
+        "message" => "Completed"
+        "time_left_description" => null
+        "time_left_seconds" => null
+      ]
+      "download_url" => "https://api.geocod.io/v1.7/lists/11953719/download"
+      "expires_at" => "2024-09-22T20:36:10.000000Z"
+    ]
+  "first_page_url" => "https://api.geocod.io/v1.7/lists?page=1"
+  "from" => 1
+  "next_page_url" => null
+  "path" => "https://api.geocod.io/v1.7/lists"
+  "per_page" => 15
+  "prev_page_url" => null
+  "to" => 3
+]
+*/
 ```
 
 #### Delete uploaded list
+Delete a previously uploaded list and its underlying spreadsheet data permanently. This can also be used to cancel and delete a spreadsheet that is currently processing.
+
+Geocodio Unlimited customers can cancel a spreadsheet at any time. Pay as You Go customers can only cancel a spreadsheet if it was just recently started.
+
+The spreadsheet data will always be deleted automatically after 72 hours if it is not deleted manually first.
 
 ```php
 $geocoder->deleteList(11950669);
