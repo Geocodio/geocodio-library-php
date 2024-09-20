@@ -6,6 +6,8 @@ All notable changes to `geocodio-library-php` will be documented in this file
 
 - Added support for list geocoding
 - Breaking: all method responses now return an associative array rather than a JSON decoded object
+- Breaking: Dropped support for unsupported PHP versions
+  - Minimum supported version of PHP is now 8.2
 
 ## 1.7.0 - 2024-09-02
 
