@@ -24,7 +24,7 @@
 You can install the package via composer:
 
 ```bash
-$ composer require geocodio/geocodio-library-php
+composer require geocodio/geocodio-library-php
 ```
 
 > Using [Laravel](https://laravel.com)? Great! There's an optional Laravel service provider, for easy integration into your app.
