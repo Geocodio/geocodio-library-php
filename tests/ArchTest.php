@@ -9,7 +9,7 @@ describe('Arch presets', function (): void {
 
 describe('Custom relaxed preset', function (): void {
     arch('No final classes')
-        ->expect('EchoLabs\Sparkle')
+        ->expect('Geocodio')
         ->classes()
         ->not
         ->toBeFinal();
