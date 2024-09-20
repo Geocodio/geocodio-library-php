@@ -2,7 +2,7 @@
 
 All notable changes to `geocodio-library-php` will be documented in this file
 
-## 2.0 - TBD
+## 2.0 - 2024-09-20
 
 - Added support for list geocoding
 - Breaking: all method responses now return an associative array rather than a JSON decoded object
