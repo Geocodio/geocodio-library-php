@@ -130,7 +130,7 @@ class Geocodio
         string $file,
         GeocodeDirection $direction,
         string $format,
-        string $callbackWebhook = '',
+        ?string $callbackWebhook = null,
     ): array {
         if (! file_exists($file)) {
             throw GeocodioException::fileNotFound($file);
@@ -156,7 +156,7 @@ class Geocodio
         string $filename,
         GeocodeDirection $direction,
         string $format,
-        string $callbackWebhook = '',
+        ?string $callbackWebhook = null,
     ): array {
         $response = $this->uploadMultipartFile(
             $data,
@@ -295,14 +295,14 @@ class Geocodio
         string $fileContents,
         GeocodeDirection $direction,
         string $format,
-        string $callbackWebhook,
+        ?string $callbackWebhook = null,
         ?string $filename = null
     ): Response {
         if (is_file($fileContents) && ! file_exists($fileContents)) {
             throw GeocodioException::fileNotFound($fileContents);
         }
 
-        $multipart = [
+        $multipart = array_filter([
             [
                 'name' => 'file',
                 'contents' => is_file($fileContents) ? fopen($fileContents, 'r') : $fileContents,
@@ -320,7 +320,7 @@ class Geocodio
                 'name' => 'callback',
                 'contents' => $callbackWebhook,
             ],
-        ];
+        ], fn ($block) => $block['contents']);
 
         return $this->sendRequest('POST', 'lists', [RequestOptions::MULTIPART => $multipart]);
     }

@@ -50,7 +50,6 @@ describe('Requests', function (): void {
         expect($body)->toContain('name="file"');
         expect($body)->toContain('name="direction"');
         expect($body)->toContain('name="format"');
-        expect($body)->toContain('name="callback"');
 
         // Assert specific values
         expect($body)->toContain('filename="simple.csv"');
@@ -75,7 +74,8 @@ describe('Requests', function (): void {
             $csvData,
             'coffee-shops.csv',
             GeocodeDirection::Forward,
-            '{{B}} {{C}} {{D}} {{E}}'
+            '{{B}} {{C}} {{D}} {{E}}',
+            'https://example.com/callbacks/file-upload'
         );
 
         $history = $http->history();
