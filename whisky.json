@@ -1,0 +1,9 @@
+{
+    "disabled": [],
+    "hooks": {
+        "pre-commit": [
+            "./vendor/bin/pint --dirty",
+            "./vendor/bin/rector process --no-diffs"
+        ]
+    }
+}

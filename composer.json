@@ -16,12 +16,16 @@
         }
     ],
     "require": {
-        "php": "^7.2|^8.0",
-        "guzzlehttp/guzzle": "^6.3|^7.0"
+        "php": "^8.2",
+        "guzzlehttp/guzzle": "^7.0"
     },
     "require-dev": {
-        "symfony/var-dumper": "^4.3",
-        "phpunit/phpunit": "^8.2"
+        "laravel/pint": "^1.17",
+        "pestphp/pest": "^3.0",
+        "phpunit/phpunit": "^11.0",
+        "projektgopher/whisky": "^0.7.0",
+        "rector/rector": "^1.2",
+        "symfony/var-dumper": "^4.3"
     },
     "autoload": {
         "psr-4": {
@@ -34,11 +38,24 @@
         }
     },
     "scripts": {
-        "test": "vendor/bin/phpunit",
-        "toc": "markdown-toc README.md -i"
+        "post-install-cmd": [
+            "whisky update"
+        ],
+        "post-update-cmd": [
+            "whisky update"
+        ],
+        "test": "vendor/bin/pest",
+        "toc": "markdown-toc README.md -i",
+        "format": [
+            "pint",
+            "rector process --no-diffs"
+        ]
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     },
     "extra": {
         "laravel": {
