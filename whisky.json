@@ -1,9 +1,9 @@
 {
-    "disabled": [],
-    "hooks": {
-        "pre-commit": [
-            "./vendor/bin/pint --dirty",
-            "./vendor/bin/rector process --no-diffs"
-        ]
-    }
+  "disabled": [],
+  "hooks": {
+    "pre-commit": [
+      "bin/git-hooks/formatting"
+    ]
+  }
 }
+

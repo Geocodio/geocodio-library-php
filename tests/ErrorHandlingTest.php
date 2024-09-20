@@ -21,7 +21,7 @@ it('throws an exception for a bad API key', function (): void {
     $geocoder = new Geocodio;
     $geocoder->setApiKey('BAD_API_KEY');
 
-    expect(fn () => $geocoder->geocode('20003'))
+    expect(fn (): mixed => $geocoder->geocode('20003'))
         ->toThrow(GeocodioException::class, 'Invalid API key');
 });
 
