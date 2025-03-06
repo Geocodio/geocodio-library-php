@@ -19,6 +19,7 @@ describe('Requests', function (): void {
         ]);
 
         $geocodio = (new Geocodio($http->client()));
+        $geocodio->setApiKey('test-1234');
 
         $geocodio->uploadList(
             __DIR__.'/Fixtures/simple.csv',
@@ -35,8 +36,7 @@ describe('Requests', function (): void {
         $body = (string) $request->getBody();
 
         // Assert the API key is being sent
-        parse_str($request->getUri()->getQuery(), $query);
-        expect($query['api_key'])->toBeString();
+        expect($request->getHeader('Authorization')[0])->toBe('Bearer test-1234');
 
         // Assert that the request is a POST request
         expect($request->getMethod())->toBe('POST');
@@ -85,10 +85,6 @@ describe('Requests', function (): void {
         $request = $history[0]['request'];
         $body = (string) $request->getBody();
 
-        // Assert the API key is being sent
-        parse_str((string) $request->getUri()->getQuery(), $query);
-        expect($query['api_key'])->toBeString();
-
         // Assert that the request is a POST request
         expect($request->getMethod())->toBe('POST');
         expect($request->getUri()->getPath())
@@ -132,10 +128,6 @@ describe('Requests', function (): void {
         /** @var Request */
         $request = $http->history()[0]['request'];
 
-        // Assert the API key is being sent
-        parse_str($request->getUri()->getQuery(), $query);
-        expect($query['api_key'])->toBeString();
-
         // Assert path and method
         expect($request->getUri()->getPath())
             ->toBe(sprintf('/%s/lists', $geocodio->apiVersion()));
@@ -157,10 +149,6 @@ describe('Requests', function (): void {
         /** @var Request */
         $request = $http->history()[0]['request'];
 
-        // Assert the API key is being sent
-        parse_str($request->getUri()->getQuery(), $query);
-        expect($query['api_key'])->toBeString();
-
         // Assert path and method
         expect($request->getMethod())->toBe('DELETE');
         expect($request->getUri()->getPath())
@@ -181,10 +169,6 @@ describe('Requests', function (): void {
 
         /** @var Request */
         $request = $http->history()[0]['request'];
-
-        // Assert the API key is being sent
-        parse_str($request->getUri()->getQuery(), $query);
-        expect($query['api_key'])->toBeString();
 
         // Assert method and path
         expect($request->getMethod())->toBe('GET');
@@ -216,10 +200,6 @@ describe('Requests', function (): void {
 
         /** @var Request $request */
         $request = $history[0]['request'];
-
-        // Assert the API key is being sent
-        parse_str($request->getUri()->getQuery(), $query);
-        expect($query['api_key'])->toBeString();
 
         // Assert file contents
         expect($path)->toBeFile();

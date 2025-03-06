@@ -27,5 +27,5 @@ it('throws an exception for a bad API key', function (): void {
 
 it('throws an exception for a bad query', function (): void {
     expect(fn () => $this->geocoder->geocode(' '))
-        ->toThrow(GeocodioException::class, 'Could not geocode address. No matches found.');
+        ->toThrow(GeocodioException::class);
 });

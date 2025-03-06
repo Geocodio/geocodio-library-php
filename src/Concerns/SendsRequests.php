@@ -49,13 +49,6 @@ trait SendsRequests
 
     protected function resolveOptions(array $options): array
     {
-        $options[RequestOptions::QUERY] = array_filter(array_merge(
-            [
-                'api_key' => $this->apiKey,
-            ],
-            $options[RequestOptions::QUERY] ?? [],
-        ));
-
         $options[RequestOptions::HEADERS] = array_merge(
             $this->getHeaders(),
             $options[RequestOptions::HEADERS] ?? [],
@@ -89,6 +82,7 @@ trait SendsRequests
     protected function getHeaders(): array
     {
         return [
+            'Authorization' => sprintf('Bearer %s', $this->apiKey),
             'User-Agent' => sprintf('geocodio-library-php/%s', Geocodio::SDK_VERSION),
             'Accept' => 'application/json',
         ];
