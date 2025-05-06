@@ -2,6 +2,14 @@
 
 All notable changes to `geocodio-library-php` will be documented in this file
 
+## 2.2 - 2025-05-06
+
+- Added fields support for list geocoding
+
+## 2.1 - 2025-03-06
+
+- Now using `Authorization` header instead of `api_key` query parameter for authentication
+
 ## 2.0 - 2024-09-20
 
 - Added support for list geocoding

@@ -44,7 +44,7 @@ class Geocodio
     /**
      * @var Current SDK version
      */
-    const SDK_VERSION = '2.1.0';
+    const SDK_VERSION = '2.2.0';
 
     public function __construct(private readonly Client $client = new Client)
     {
