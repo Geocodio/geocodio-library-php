@@ -57,6 +57,32 @@ describe('Requests', function (): void {
         expect($body)->toContain('{{B}} {{C}} {{D}} {{E}}');
     });
 
+    it('uploads a list with fields', function (): void {
+        $http = Client::create([
+            TestResponse::successJson(),
+        ]);
+
+        $geocodio = (new Geocodio($http->client()));
+        $geocodio->setApiKey('test-1234');
+
+        $geocodio->uploadList(
+            __DIR__.'/Fixtures/simple.csv',
+            GeocodeDirection::Forward,
+            '{{B}} {{C}} {{D}} {{E}}',
+            fields: ['cd'],
+        );
+
+        $history = $http->history();
+
+        expect($history)->toHaveCount(1);
+
+        /** @var Request $request */
+        $request = $history[0]['request'];
+        $body = (string) $request->getBody();
+
+        expect($body)->toContain('cd');
+    });
+
     it('uploads an inline list', function (): void {
         $http = Client::create([
             TestResponse::successJson(),
@@ -112,6 +138,38 @@ describe('Requests', function (): void {
         // The value of GeocodeDirection::Forward
         expect($body)->toContain('forward');
         expect($body)->toContain('{{B}} {{C}} {{D}} {{E}}');
+    });
+
+    it('uploads an inline list with fields', function (): void {
+        $http = Client::create([
+            TestResponse::successJson(),
+        ]);
+
+        $csvData = <<<'CSV'
+    name,street,city,state,zip
+    "Peregrine Espresso","660 Pennsylvania Ave SE",Washington,DC,20003
+    "Lot 38 Espresso Bar","1001 2nd St SE",Washington,DC,20003
+    CSV;
+
+        $geocodio = (new Geocodio($http->client()));
+
+        $geocodio->uploadInlineList(
+            $csvData,
+            'coffee-shops.csv',
+            GeocodeDirection::Forward,
+            '{{B}} {{C}} {{D}} {{E}}',
+            'https://example.com/callbacks/file-upload',
+            ['census', 'timezone']
+        );
+
+        $history = $http->history();
+
+        expect($history)->toHaveCount(1);
+
+        $request = $history[0]['request'];
+        $body = (string) $request->getBody();
+
+        expect($body)->toContain('census,timezone');
     });
 
     it('can fetch your lists', function (): void {
