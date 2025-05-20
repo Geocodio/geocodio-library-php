@@ -2,6 +2,10 @@
 
 All notable changes to `geocodio-library-php` will be documented in this file
 
+## 2.3 - 2025-05-20
+
+- Update to use Geocodio API v1.8
+
 ## 2.2 - 2025-05-06
 
 - Added fields support for list geocoding

@@ -31,7 +31,7 @@ class Geocodio
      *
      * @see https://www.geocod.io/docs/#changelog
      */
-    private string $apiVersion = 'v1.7';
+    private string $apiVersion = 'v1.8';
 
     const ADDRESS_COMPONENT_PARAMETERS = [
         'street',
@@ -44,7 +44,7 @@ class Geocodio
     /**
      * @var Current SDK version
      */
-    const SDK_VERSION = '2.2.0';
+    const SDK_VERSION = '2.3.0';
 
     public function __construct(private readonly Client $client = new Client)
     {
