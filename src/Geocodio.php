@@ -46,6 +46,21 @@ class Geocodio
      */
     const SDK_VERSION = '2.3.0';
 
+    /**
+     * @var Timeout for single geocoding requests in milliseconds
+     */
+    const SINGLE_TIMEOUT_MS = 5000;
+
+    /**
+     * @var Timeout for batch geocoding requests in milliseconds
+     */
+    const BATCH_TIMEOUT_MS = 1800000; // 30 minutes
+
+    /**
+     * @var Timeout for lists API requests in milliseconds
+     */
+    const LISTS_TIMEOUT_MS = 60000;
+
     public function __construct(private readonly Client $client = new Client)
     {
         $this->apiKey = getenv('GEOCODIO_API_KEY');
@@ -111,11 +126,11 @@ class Geocodio
             $query = is_array($query) ? $query : ['q' => $query];
             $options[RequestOptions::QUERY] = array_merge($options[RequestOptions::QUERY], $query);
 
-            $response = $this->sendRequest('GET', 'geocode', $options);
+            $response = $this->sendRequest('GET', 'geocode', $options, self::SINGLE_TIMEOUT_MS);
         } else {
             $options[RequestOptions::JSON] = $query;
 
-            $response = $this->sendRequest('POST', 'geocode', $options);
+            $response = $this->sendRequest('POST', 'geocode', $options, self::BATCH_TIMEOUT_MS);
         }
 
         return $this->toResponse($response);
@@ -184,6 +199,8 @@ class Geocodio
         $response = $this->sendRequest(
             'GET',
             "lists/{$listId}",
+            [],
+            self::LISTS_TIMEOUT_MS
         );
 
         return $this->toResponse($response);
@@ -199,6 +216,8 @@ class Geocodio
         $response = $this->sendRequest(
             'GET',
             'lists',
+            [],
+            self::LISTS_TIMEOUT_MS
         );
 
         return $this->toResponse($response);
@@ -216,7 +235,8 @@ class Geocodio
             "lists/{$listId}/download",
             [
                 RequestOptions::STREAM => true,
-            ]
+            ],
+            self::LISTS_TIMEOUT_MS
         );
 
         $body = $response->getBody();
@@ -243,6 +263,8 @@ class Geocodio
         $response = $this->sendRequest(
             'DELETE',
             "lists/{$listId}",
+            [],
+            self::LISTS_TIMEOUT_MS
         );
 
         return $this->toResponse($response);
@@ -272,11 +294,11 @@ class Geocodio
         ];
 
         if (is_string($query) || (is_array($query) && is_numeric($query[0]))) {
-            $response = $this->sendRequest('GET', 'reverse', $options);
+            $response = $this->sendRequest('GET', 'reverse', $options, self::SINGLE_TIMEOUT_MS);
         } else {
             $options[RequestOptions::JSON] = array_map(fn ($q) => $this->formattedReverseQuery($q), $query);
 
-            $response = $this->sendRequest('POST', 'reverse', $options);
+            $response = $this->sendRequest('POST', 'reverse', $options, self::BATCH_TIMEOUT_MS);
 
         }
 
@@ -331,7 +353,7 @@ class Geocodio
             ],
         ], fn ($block) => $block['contents']);
 
-        return $this->sendRequest('POST', 'lists', [RequestOptions::MULTIPART => $multipart]);
+        return $this->sendRequest('POST', 'lists', [RequestOptions::MULTIPART => $multipart], self::LISTS_TIMEOUT_MS);
     }
 
     protected function toResponse(Response $response): array
