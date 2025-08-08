@@ -33,6 +33,21 @@ class Geocodio
      */
     private string $apiVersion = 'v1.8';
 
+    /**
+     * @var int Timeout for single geocoding requests in milliseconds
+     */
+    private int $singleTimeoutMs;
+
+    /**
+     * @var int Timeout for batch geocoding requests in milliseconds
+     */
+    private int $batchTimeoutMs;
+
+    /**
+     * @var int Timeout for lists API requests in milliseconds
+     */
+    private int $listsTimeoutMs;
+
     const ADDRESS_COMPONENT_PARAMETERS = [
         'street',
         'city',
@@ -72,6 +87,11 @@ class Geocodio
         if ($apiVersion = getenv('GEOCODIO_API_VERSION')) {
             $this->apiVersion = $apiVersion;
         }
+
+        // Initialize timeout values with defaults
+        $this->singleTimeoutMs = self::SINGLE_TIMEOUT_MS;
+        $this->batchTimeoutMs = self::BATCH_TIMEOUT_MS;
+        $this->listsTimeoutMs = self::LISTS_TIMEOUT_MS;
     }
 
     public function setApiKey(string $apiKey): self
@@ -100,6 +120,27 @@ class Geocodio
         return $this->apiVersion;
     }
 
+    public function setSingleTimeoutMs(int $timeoutMs): self
+    {
+        $this->singleTimeoutMs = $timeoutMs;
+
+        return $this;
+    }
+
+    public function setBatchTimeoutMs(int $timeoutMs): self
+    {
+        $this->batchTimeoutMs = $timeoutMs;
+
+        return $this;
+    }
+
+    public function setListsTimeoutMs(int $timeoutMs): self
+    {
+        $this->listsTimeoutMs = $timeoutMs;
+
+        return $this;
+    }
+
     /**
      * Forward geocode an address or a list of addresses
      *
@@ -126,11 +167,11 @@ class Geocodio
             $query = is_array($query) ? $query : ['q' => $query];
             $options[RequestOptions::QUERY] = array_merge($options[RequestOptions::QUERY], $query);
 
-            $response = $this->sendRequest('GET', 'geocode', $options, self::SINGLE_TIMEOUT_MS);
+            $response = $this->sendRequest('GET', 'geocode', $options, $this->singleTimeoutMs);
         } else {
             $options[RequestOptions::JSON] = $query;
 
-            $response = $this->sendRequest('POST', 'geocode', $options, self::BATCH_TIMEOUT_MS);
+            $response = $this->sendRequest('POST', 'geocode', $options, $this->batchTimeoutMs);
         }
 
         return $this->toResponse($response);
@@ -200,7 +241,7 @@ class Geocodio
             'GET',
             "lists/{$listId}",
             [],
-            self::LISTS_TIMEOUT_MS
+            $this->listsTimeoutMs
         );
 
         return $this->toResponse($response);
@@ -217,7 +258,7 @@ class Geocodio
             'GET',
             'lists',
             [],
-            self::LISTS_TIMEOUT_MS
+            $this->listsTimeoutMs
         );
 
         return $this->toResponse($response);
@@ -236,7 +277,7 @@ class Geocodio
             [
                 RequestOptions::STREAM => true,
             ],
-            self::LISTS_TIMEOUT_MS
+            $this->listsTimeoutMs
         );
 
         $body = $response->getBody();
@@ -264,7 +305,7 @@ class Geocodio
             'DELETE',
             "lists/{$listId}",
             [],
-            self::LISTS_TIMEOUT_MS
+            $this->listsTimeoutMs
         );
 
         return $this->toResponse($response);
@@ -294,11 +335,11 @@ class Geocodio
         ];
 
         if (is_string($query) || (is_array($query) && is_numeric($query[0]))) {
-            $response = $this->sendRequest('GET', 'reverse', $options, self::SINGLE_TIMEOUT_MS);
+            $response = $this->sendRequest('GET', 'reverse', $options, $this->singleTimeoutMs);
         } else {
             $options[RequestOptions::JSON] = array_map(fn ($q) => $this->formattedReverseQuery($q), $query);
 
-            $response = $this->sendRequest('POST', 'reverse', $options, self::BATCH_TIMEOUT_MS);
+            $response = $this->sendRequest('POST', 'reverse', $options, $this->batchTimeoutMs);
 
         }
 
@@ -353,7 +394,7 @@ class Geocodio
             ],
         ], fn ($block) => $block['contents']);
 
-        return $this->sendRequest('POST', 'lists', [RequestOptions::MULTIPART => $multipart], self::LISTS_TIMEOUT_MS);
+        return $this->sendRequest('POST', 'lists', [RequestOptions::MULTIPART => $multipart], $this->listsTimeoutMs);
     }
 
     protected function toResponse(Response $response): array
