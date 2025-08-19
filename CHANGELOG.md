@@ -2,7 +2,7 @@
 
 All notable changes to `geocodio-library-php` will be documented in this file
 
-## Unreleased
+## 2.5 - 2025-08-19
 
 - Update to use Geocodio API v1.9
 
