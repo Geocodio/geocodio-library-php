@@ -16,13 +16,13 @@ trait SendsRequests
     /**
      * @throws GeocodioException
      */
-    protected function sendRequest(string $method, string $uri, array $options = []): Response
+    protected function sendRequest(string $method, string $uri, array $options = [], ?int $timeoutMs = null): Response
     {
         try {
             return $this->client->request(
                 $method,
                 $this->formatUrl($uri),
-                $this->resolveOptions($options)
+                $this->resolveOptions($options, $timeoutMs)
             );
         } catch (Throwable $e) {
             $this->handleException($e);
@@ -47,12 +47,16 @@ trait SendsRequests
         throw new GeocodioException($e->getMessage(), previous: $e);
     }
 
-    protected function resolveOptions(array $options): array
+    protected function resolveOptions(array $options, ?int $timeoutMs = null): array
     {
         $options[RequestOptions::HEADERS] = array_merge(
             $this->getHeaders(),
             $options[RequestOptions::HEADERS] ?? [],
         );
+
+        if ($timeoutMs !== null) {
+            $options[RequestOptions::TIMEOUT] = $timeoutMs / 1000; // Convert ms to seconds for Guzzle
+        }
 
         return $options;
     }
