@@ -2,6 +2,11 @@
 
 All notable changes to `geocodio-library-php` will be documented in this file
 
+## 2.4 - 2025-08-19
+
+- Added configurable HTTP timeouts for API requests
+- Fixed return type declarations for geocode and reverse methods
+
 ## 2.3 - 2025-05-20
 
 - Update to use Geocodio API v1.8
