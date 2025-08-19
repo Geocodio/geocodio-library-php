@@ -262,8 +262,8 @@ array:6 [
     "time_left_description" => null
     "time_left_seconds" => null
   ]
-  "download_url" => "https://api.geocod.io/v1.8/lists/11953719/download"
-  "expires_at" => "2024-09-22T20:36:10.000000Z"
+  "download_url" => "https://api.geocod.io/v1.9/lists/11953719/download"
+  "expires_at" => "2025-08-22T20:36:10.000000Z"
 ]
 */
 ```
@@ -299,13 +299,13 @@ array:9 [
         "time_left_description" => null
         "time_left_seconds" => null
       ]
-      "download_url" => "https://api.geocod.io/v1.8/lists/11953719/download"
-      "expires_at" => "2024-09-22T20:36:10.000000Z"
+      "download_url" => "https://api.geocod.io/v1.9/lists/11953719/download"
+      "expires_at" => "2025-08-22T20:36:10.000000Z"
     ]
-  "first_page_url" => "https://api.geocod.io/v1.8/lists?page=1"
+  "first_page_url" => "https://api.geocod.io/v1.9/lists?page=1"
   "from" => 1
   "next_page_url" => null
-  "path" => "https://api.geocod.io/v1.8/lists"
+  "path" => "https://api.geocod.io/v1.9/lists"
   "per_page" => 15
   "prev_page_url" => null
   "to" => 3
