@@ -91,14 +91,13 @@ class Geocodio
      * @see https://www.geocod.io/docs/#geocoding
      *
      * @param  string|array  $query
-     * @return array|object
      */
     public function geocode(
         $query,
         array $fields = [],
         ?int $limit = null,
         ?string $format = null
-    ): mixed {
+    ): array {
         $options = [
             RequestOptions::QUERY => [
                 'fields' => implode(',', $fields),
@@ -254,14 +253,13 @@ class Geocodio
      * @see https://www.geocod.io/docs/#reverse-geocoding
      *
      * @param  string|array  $query
-     * @return array|object
      */
     public function reverse(
         $query,
         array $fields = [],
         ?int $limit = null,
         ?string $format = null
-    ): mixed {
+    ): array {
         $options = [
             RequestOptions::QUERY => [
                 'q' => $this->formattedReverseQuery($query),
