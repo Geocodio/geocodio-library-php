@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Geocodio\Concerns;
 
+use Geocodio\Data\Coordinate;
+use Geocodio\Enums\DistanceMode;
+use Geocodio\Enums\DistanceOrderBy;
+use Geocodio\Enums\DistanceSortOrder;
+use Geocodio\Enums\DistanceUnits;
 use Geocodio\Exceptions\GeocodioException;
 use Geocodio\Geocodio;
 use GuzzleHttp\Exception\RequestException;
@@ -81,6 +86,95 @@ trait SendsRequests
         }
 
         return $query;
+    }
+
+    /**
+     * Format coordinate as string for GET requests.
+     */
+    protected function formatCoordinateAsString(Coordinate|string|array $coordinate): string
+    {
+        if ($coordinate instanceof Coordinate) {
+            return $coordinate->toString();
+        }
+
+        if (is_string($coordinate)) {
+            // Validate it's a coordinate format, not an address
+            if ($this->isCoordinateString($coordinate)) {
+                return $coordinate;
+            }
+
+            // Return as-is for addresses
+            return $coordinate;
+        }
+
+        // Array format: [lat, lng] or [lat, lng, id]
+        return Coordinate::fromArray($coordinate)->toString();
+    }
+
+    /**
+     * Format coordinate as object for POST requests.
+     *
+     * Returns either:
+     * - array{lat: float, lng: float, id?: string} for coordinates
+     * - string for addresses (passed through)
+     *
+     * @return array{lat: float, lng: float, id?: string}|string
+     */
+    protected function formatCoordinateAsObject(Coordinate|string|array $coordinate): array|string
+    {
+        if ($coordinate instanceof Coordinate) {
+            return $coordinate->toArray();
+        }
+
+        if (is_string($coordinate)) {
+            // Check if it's a coordinate string
+            if ($this->isCoordinateString($coordinate)) {
+                return Coordinate::fromString($coordinate)->toArray();
+            }
+
+            // Return as-is for addresses
+            return $coordinate;
+        }
+
+        // Array format: [lat, lng] or [lat, lng, id]
+        return Coordinate::fromArray($coordinate)->toArray();
+    }
+
+    /**
+     * Check if a string looks like a coordinate (lat,lng or lat,lng,id).
+     */
+    protected function isCoordinateString(string $value): bool
+    {
+        $parts = explode(',', $value);
+
+        if (count($parts) < 2) {
+            return false;
+        }
+
+        return is_numeric(trim($parts[0])) && is_numeric(trim($parts[1]));
+    }
+
+    /**
+     * Normalize distance mode value, mapping haversine to straightline for backward compatibility
+     */
+    protected function normalizeDistanceMode(string|DistanceMode $mode): string
+    {
+        $value = $mode instanceof DistanceMode ? $mode->value : $mode;
+
+        // Map haversine → straightline for backward compatibility
+        return $value === 'haversine' ? 'straightline' : $value;
+    }
+
+    /**
+     * Get string value from enum or string
+     */
+    protected function enumValue(string|DistanceUnits|DistanceOrderBy|DistanceSortOrder $value): string
+    {
+        if ($value instanceof DistanceUnits || $value instanceof DistanceOrderBy || $value instanceof DistanceSortOrder) {
+            return $value->value;
+        }
+
+        return $value;
     }
 
     protected function getHeaders(): array
