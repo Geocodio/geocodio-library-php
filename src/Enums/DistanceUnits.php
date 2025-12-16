@@ -7,5 +7,5 @@ namespace Geocodio\Enums;
 enum DistanceUnits: string
 {
     case Miles = 'miles';
-    case Kilometers = 'kilometers';
+    case Km = 'km';
 }

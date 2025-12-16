@@ -374,7 +374,7 @@ DistanceMode::Haversine     // Alias for Straightline (backward compat)
 
 // Available units
 DistanceUnits::Miles  // Default
-DistanceUnits::Kilometers
+DistanceUnits::Km
 
 // Sorting options
 DistanceOrderBy::Distance  // Default
@@ -525,7 +525,7 @@ $response = $geocoder->distance(
         '37.8049,-122.4294,store_3'
     ],
     mode: DistanceMode::Driving,
-    units: DistanceUnits::Kilometers,
+    units: DistanceUnits::Km,
     maxResults: 2,
     maxDistance: 10.0,
     orderBy: DistanceOrderBy::Distance,
@@ -593,7 +593,7 @@ $response = $geocoder->distanceMatrix(
     origins: ['37.7749,-122.4194'],
     destinations: ['37.7849,-122.4094'],
     mode: DistanceMode::Driving,
-    units: DistanceUnits::Kilometers
+    units: DistanceUnits::Km
 );
 ```
 
