@@ -635,7 +635,7 @@ class Geocodio
             RequestOptions::JSON => $payload,
         ];
 
-        $response = $this->sendRequest('POST', 'distance', $options, $this->distanceTimeoutMs);
+        $response = $this->sendRequest('POST', 'distance-matrix', $options, $this->distanceTimeoutMs);
 
         return $this->toResponse($response);
     }
@@ -729,7 +729,7 @@ class Geocodio
 
         $response = $this->sendRequest(
             'POST',
-            'distance-matrix',
+            'distance-jobs',
             [RequestOptions::JSON => $payload],
             $this->listsTimeoutMs
         );
@@ -746,7 +746,7 @@ class Geocodio
     {
         $response = $this->sendRequest(
             'GET',
-            "distance-matrix/{$identifier}",
+            "distance-jobs/{$identifier}",
             [],
             $this->listsTimeoutMs
         );
@@ -769,7 +769,7 @@ class Geocodio
 
         $response = $this->sendRequest(
             'GET',
-            'distance-matrix',
+            'distance-jobs',
             $options,
             $this->listsTimeoutMs
         );
@@ -786,7 +786,7 @@ class Geocodio
     {
         $response = $this->sendRequest(
             'GET',
-            "distance-matrix/{$identifier}/download",
+            "distance-jobs/{$identifier}/download",
             [
                 RequestOptions::STREAM => true,
             ],
@@ -818,7 +818,7 @@ class Geocodio
     {
         $response = $this->sendRequest(
             'GET',
-            "distance-matrix/{$identifier}/download",
+            "distance-jobs/{$identifier}/download",
             [],
             $this->listsTimeoutMs
         );
@@ -835,7 +835,7 @@ class Geocodio
     {
         $response = $this->sendRequest(
             'DELETE',
-            "distance-matrix/{$identifier}",
+            "distance-jobs/{$identifier}",
             [],
             $this->listsTimeoutMs
         );
