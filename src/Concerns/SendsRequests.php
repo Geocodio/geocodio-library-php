@@ -12,8 +12,8 @@ use Geocodio\Enums\DistanceUnits;
 use Geocodio\Exceptions\GeocodioException;
 use Geocodio\Geocodio;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
+use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
 trait SendsRequests
@@ -21,7 +21,7 @@ trait SendsRequests
     /**
      * @throws GeocodioException
      */
-    protected function sendRequest(string $method, string $uri, array $options = [], ?int $timeoutMs = null): Response
+    protected function sendRequest(string $method, string $uri, array $options = [], ?int $timeoutMs = null): ResponseInterface
     {
         try {
             return $this->client->request(
@@ -37,7 +37,7 @@ trait SendsRequests
     /**
      * @throws GeocodioException
      */
-    protected function handleException(Throwable $e): void
+    protected function handleException(Throwable $e): never
     {
         if ($e instanceof RequestException && $e->hasResponse()) {
 

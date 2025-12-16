@@ -12,8 +12,8 @@ use Geocodio\Enums\DistanceUnits;
 use Geocodio\Enums\GeocodeDirection;
 use Geocodio\Exceptions\GeocodioException;
 use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
+use Psr\Http\Message\ResponseInterface;
 
 class Geocodio
 {
@@ -67,27 +67,27 @@ class Geocodio
     ];
 
     /**
-     * @var Current SDK version
+     * Current SDK version
      */
     const SDK_VERSION = '2.6.0';
 
     /**
-     * @var Timeout for single geocoding requests in milliseconds
+     * Timeout for single geocoding requests in milliseconds
      */
     const SINGLE_TIMEOUT_MS = 5000;
 
     /**
-     * @var Timeout for batch geocoding requests in milliseconds
+     * Timeout for batch geocoding requests in milliseconds
      */
     const BATCH_TIMEOUT_MS = 1800000; // 30 minutes
 
     /**
-     * @var Timeout for lists API requests in milliseconds
+     * Timeout for lists API requests in milliseconds
      */
     const LISTS_TIMEOUT_MS = 60000;
 
     /**
-     * @var Timeout for distance API requests in milliseconds
+     * Timeout for distance API requests in milliseconds
      */
     const DISTANCE_TIMEOUT_MS = 10000;
 
@@ -861,7 +861,7 @@ class Geocodio
         ?string $callbackWebhook = null,
         array $fields = [],
         ?string $filename = null
-    ): Response {
+    ): ResponseInterface {
         if (is_file($fileContents) && ! file_exists($fileContents)) {
             throw GeocodioException::fileNotFound($fileContents);
         }
@@ -893,7 +893,7 @@ class Geocodio
         return $this->sendRequest('POST', 'lists', [RequestOptions::MULTIPART => $multipart], $this->listsTimeoutMs);
     }
 
-    protected function toResponse(Response $response): array
+    protected function toResponse(ResponseInterface $response): array
     {
         return json_decode((string) $response->getBody(), true);
     }
