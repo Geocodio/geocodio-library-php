@@ -142,6 +142,11 @@ trait SendsRequests
 
     /**
      * Check if a string looks like a coordinate (lat,lng or lat,lng,id).
+     *
+     * Validates that:
+     * - At least 2 comma-separated parts exist
+     * - First two parts are numeric (the coordinate values)
+     * - Values are within valid geographic ranges
      */
     protected function isCoordinateString(string $value): bool
     {
@@ -151,7 +156,19 @@ trait SendsRequests
             return false;
         }
 
-        return is_numeric(trim($parts[0])) && is_numeric(trim($parts[1]));
+        $lat = trim($parts[0]);
+        $lng = trim($parts[1]);
+
+        if (! is_numeric($lat) || ! is_numeric($lng)) {
+            return false;
+        }
+
+        $latFloat = (float) $lat;
+        $lngFloat = (float) $lng;
+
+        // Validate lat/lng ranges
+        return $latFloat >= -90 && $latFloat <= 90
+            && $lngFloat >= -180 && $lngFloat <= 180;
     }
 
     /**
