@@ -172,14 +172,11 @@ trait SendsRequests
     }
 
     /**
-     * Normalize distance mode value, mapping haversine to straightline for backward compatibility
+     * Get string value from distance mode enum or string.
      */
     protected function normalizeDistanceMode(string|DistanceMode $mode): string
     {
-        $value = $mode instanceof DistanceMode ? $mode->value : $mode;
-
-        // Map haversine → straightline for backward compatibility
-        return $value === 'haversine' ? 'straightline' : $value;
+        return $mode instanceof DistanceMode ? $mode->value : $mode;
     }
 
     /**
