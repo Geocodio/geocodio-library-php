@@ -370,7 +370,6 @@ use Geocodio\Enums\DistanceSortOrder;
 // Available modes
 DistanceMode::Straightline  // Default - great-circle (as the crow flies)
 DistanceMode::Driving       // Road network routing with duration
-DistanceMode::Haversine     // Alias for Straightline (backward compat)
 
 // Available units
 DistanceUnits::Miles  // Default
@@ -399,16 +398,13 @@ use Geocodio\Enums\DistanceSortOrder;
 // Geocode an address and calculate distances to store locations
 $response = $geocoder->geocode(
     '1600 Pennsylvania Ave NW, Washington DC',
-    [],     // fields
-    null,   // limit
-    null,   // format
-    [       // destinations with custom IDs
+    destinations: [
         '38.9072,-77.0369,store_dc',
         '39.2904,-76.6122,store_baltimore',
         '39.9526,-75.1652,store_philly'
     ],
-    DistanceMode::Driving,
-    DistanceUnits::Miles
+    distanceMode: DistanceMode::Driving,
+    distanceUnits: DistanceUnits::Miles
 );
 
 /*
@@ -717,7 +713,7 @@ $geocoder->downloadDistanceMatrixJob($job['id'], '/path/to/results.json');
 $geocoder->deleteDistanceMatrixJob($job['id']);
 ```
 
-> Note: Billing is based on the `elements_billed` value returned in the response. Driving mode has a 2× multiplier compared to straightline mode.
+> Note: Distance lookups are billed separately, please refer to https://www.geocod.io/pricing/ for more information.
 
 ## Usage with Laravel
 
