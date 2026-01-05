@@ -56,8 +56,8 @@ class Geocodio
     /**
      * @var int Timeout for distance API requests in milliseconds
      */
-    private int $distanceTimeoutMs
-      
+    private int $distanceTimeoutMs;
+
     /**
      * @var int Timeout for list download requests in milliseconds
      */
@@ -95,7 +95,7 @@ class Geocodio
      * Timeout for distance API requests in milliseconds
      */
     const DISTANCE_TIMEOUT_MS = 10000;
-  
+
     /**
      * @var Timeout for list download requests in milliseconds
      */
@@ -170,15 +170,15 @@ class Geocodio
 
     public function setDistanceTimeoutMs(int $timeoutMs): self
     {
-        $this->distanceTimeoutMs = $timeoutMs; 
-        
+        $this->distanceTimeoutMs = $timeoutMs;
+
         return $this;
     }
-  
+
     public function setListDownloadTimeoutMs(int $timeoutMs): self
     {
         $this->listDownloadTimeoutMs = $timeoutMs;
-        
+
         return $this;
     }
 
