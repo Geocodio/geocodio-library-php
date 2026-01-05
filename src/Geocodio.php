@@ -56,7 +56,12 @@ class Geocodio
     /**
      * @var int Timeout for distance API requests in milliseconds
      */
-    private int $distanceTimeoutMs;
+    private int $distanceTimeoutMs
+      
+    /**
+     * @var int Timeout for list download requests in milliseconds
+     */
+    private int $listDownloadTimeoutMs;
 
     const ADDRESS_COMPONENT_PARAMETERS = [
         'street',
@@ -90,6 +95,11 @@ class Geocodio
      * Timeout for distance API requests in milliseconds
      */
     const DISTANCE_TIMEOUT_MS = 10000;
+  
+    /**
+     * @var Timeout for list download requests in milliseconds
+     */
+    const LIST_DOWNLOAD_TIMEOUT_MS = 1800000; // 30 minutes
 
     public function __construct(private readonly Client $client = new Client)
     {
@@ -108,6 +118,7 @@ class Geocodio
         $this->batchTimeoutMs = self::BATCH_TIMEOUT_MS;
         $this->listsTimeoutMs = self::LISTS_TIMEOUT_MS;
         $this->distanceTimeoutMs = self::DISTANCE_TIMEOUT_MS;
+        $this->listDownloadTimeoutMs = self::LIST_DOWNLOAD_TIMEOUT_MS;
     }
 
     public function setApiKey(string $apiKey): self
@@ -159,8 +170,15 @@ class Geocodio
 
     public function setDistanceTimeoutMs(int $timeoutMs): self
     {
-        $this->distanceTimeoutMs = $timeoutMs;
-
+        $this->distanceTimeoutMs = $timeoutMs; 
+        
+        return $this;
+    }
+  
+    public function setListDownloadTimeoutMs(int $timeoutMs): self
+    {
+        $this->listDownloadTimeoutMs = $timeoutMs;
+        
         return $this;
     }
 
@@ -355,7 +373,7 @@ class Geocodio
             [
                 RequestOptions::STREAM => true,
             ],
-            $this->listsTimeoutMs
+            $this->listDownloadTimeoutMs
         );
 
         $body = $response->getBody();

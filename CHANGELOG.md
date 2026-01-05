@@ -2,6 +2,10 @@
 
 All notable changes to `geocodio-library-php` will be documented in this file
 
+## 2.6 - 2025-12-19
+
+- Added separate `listDownloadTimeoutMs` timeout for list downloads (30 minutes default) to handle large file downloads
+
 ## 2.5 - 2025-08-19
 
 - Update to use Geocodio API v1.9
