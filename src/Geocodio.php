@@ -4,11 +4,16 @@ namespace Geocodio;
 
 use Exception;
 use Geocodio\Concerns\SendsRequests;
+use Geocodio\Data\Coordinate;
+use Geocodio\Enums\DistanceMode;
+use Geocodio\Enums\DistanceOrderBy;
+use Geocodio\Enums\DistanceSortOrder;
+use Geocodio\Enums\DistanceUnits;
 use Geocodio\Enums\GeocodeDirection;
 use Geocodio\Exceptions\GeocodioException;
 use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
+use Psr\Http\Message\ResponseInterface;
 
 class Geocodio
 {
@@ -49,6 +54,11 @@ class Geocodio
     private int $listsTimeoutMs;
 
     /**
+     * @var int Timeout for distance API requests in milliseconds
+     */
+    private int $distanceTimeoutMs;
+
+    /**
      * @var int Timeout for list download requests in milliseconds
      */
     private int $listDownloadTimeoutMs;
@@ -62,24 +72,29 @@ class Geocodio
     ];
 
     /**
-     * @var Current SDK version
+     * Current SDK version
      */
     const SDK_VERSION = '2.6.0';
 
     /**
-     * @var Timeout for single geocoding requests in milliseconds
+     * Timeout for single geocoding requests in milliseconds
      */
     const SINGLE_TIMEOUT_MS = 5000;
 
     /**
-     * @var Timeout for batch geocoding requests in milliseconds
+     * Timeout for batch geocoding requests in milliseconds
      */
     const BATCH_TIMEOUT_MS = 1800000; // 30 minutes
 
     /**
-     * @var Timeout for lists API requests in milliseconds
+     * Timeout for lists API requests in milliseconds
      */
     const LISTS_TIMEOUT_MS = 60000;
+
+    /**
+     * Timeout for distance API requests in milliseconds
+     */
+    const DISTANCE_TIMEOUT_MS = 10000;
 
     /**
      * @var Timeout for list download requests in milliseconds
@@ -102,6 +117,7 @@ class Geocodio
         $this->singleTimeoutMs = self::SINGLE_TIMEOUT_MS;
         $this->batchTimeoutMs = self::BATCH_TIMEOUT_MS;
         $this->listsTimeoutMs = self::LISTS_TIMEOUT_MS;
+        $this->distanceTimeoutMs = self::DISTANCE_TIMEOUT_MS;
         $this->listDownloadTimeoutMs = self::LIST_DOWNLOAD_TIMEOUT_MS;
     }
 
@@ -152,6 +168,13 @@ class Geocodio
         return $this;
     }
 
+    public function setDistanceTimeoutMs(int $timeoutMs): self
+    {
+        $this->distanceTimeoutMs = $timeoutMs;
+
+        return $this;
+    }
+
     public function setListDownloadTimeoutMs(int $timeoutMs): self
     {
         $this->listDownloadTimeoutMs = $timeoutMs;
@@ -165,12 +188,35 @@ class Geocodio
      * @see https://www.geocod.io/docs/#geocoding
      *
      * @param  string|array  $query
+     * @param  array  $fields  Additional data fields to append
+     * @param  int|null  $limit  Maximum number of results
+     * @param  string|null  $format  Response format
+     * @param  array  $destinations  Optional destinations for distance calculation
+     * @param  string|DistanceMode  $distanceMode  Distance mode: "driving", "straightline", or "haversine"
+     * @param  string|DistanceUnits  $distanceUnits  Distance units: "miles" or "km"
+     * @param  int|null  $distanceMaxResults  Maximum number of destinations to return
+     * @param  float|null  $distanceMaxDistance  Maximum distance filter
+     * @param  int|null  $distanceMaxDuration  Maximum duration filter (seconds, driving mode only)
+     * @param  float|null  $distanceMinDistance  Minimum distance filter
+     * @param  int|null  $distanceMinDuration  Minimum duration filter (seconds, driving mode only)
+     * @param  string|DistanceOrderBy  $distanceOrderBy  Sort by "distance" or "duration"
+     * @param  string|DistanceSortOrder  $distanceSortOrder  Sort order: "asc" or "desc"
      */
     public function geocode(
         $query,
         array $fields = [],
         ?int $limit = null,
-        ?string $format = null
+        ?string $format = null,
+        array $destinations = [],
+        string|DistanceMode $distanceMode = DistanceMode::Straightline,
+        string|DistanceUnits $distanceUnits = DistanceUnits::Miles,
+        ?int $distanceMaxResults = null,
+        ?float $distanceMaxDistance = null,
+        ?int $distanceMaxDuration = null,
+        ?float $distanceMinDistance = null,
+        ?int $distanceMinDuration = null,
+        string|DistanceOrderBy $distanceOrderBy = DistanceOrderBy::Distance,
+        string|DistanceSortOrder $distanceSortOrder = DistanceSortOrder::Asc
     ): array {
         $options = [
             RequestOptions::QUERY => [
@@ -179,6 +225,39 @@ class Geocodio
                 'format' => $format,
             ],
         ];
+
+        // Add distance parameters if destinations are provided
+        // Destinations can be either coordinates or addresses
+        if ($destinations !== []) {
+            foreach ($destinations as $destination) {
+                $options[RequestOptions::QUERY]['destinations'][] = $this->formatCoordinateAsString($destination);
+            }
+            $options[RequestOptions::QUERY]['distance_mode'] = $this->normalizeDistanceMode($distanceMode);
+            $options[RequestOptions::QUERY]['distance_units'] = $this->enumValue($distanceUnits);
+
+            // Add optional distance filter parameters
+            if ($distanceMaxResults !== null) {
+                $options[RequestOptions::QUERY]['distance_max_results'] = $distanceMaxResults;
+            }
+            if ($distanceMaxDistance !== null) {
+                $options[RequestOptions::QUERY]['distance_max_distance'] = $distanceMaxDistance;
+            }
+            if ($distanceMaxDuration !== null) {
+                $options[RequestOptions::QUERY]['distance_max_duration'] = $distanceMaxDuration;
+            }
+            if ($distanceMinDistance !== null) {
+                $options[RequestOptions::QUERY]['distance_min_distance'] = $distanceMinDistance;
+            }
+            if ($distanceMinDuration !== null) {
+                $options[RequestOptions::QUERY]['distance_min_duration'] = $distanceMinDuration;
+            }
+
+            // Add sorting parameters when filters are used
+            if ($distanceMaxResults !== null || $distanceMaxDistance !== null || $distanceMaxDuration !== null || $distanceMinDistance !== null || $distanceMinDuration !== null) {
+                $options[RequestOptions::QUERY]['distance_order_by'] = $this->enumValue($distanceOrderBy);
+                $options[RequestOptions::QUERY]['distance_sort_order'] = $this->enumValue($distanceSortOrder);
+            }
+        }
 
         if ($this->isSingleQuery($query)) {
             $query = is_array($query) ? $query : ['q' => $query];
@@ -334,12 +413,35 @@ class Geocodio
      * @see https://www.geocod.io/docs/#reverse-geocoding
      *
      * @param  string|array  $query
+     * @param  array  $fields  Additional data fields to append
+     * @param  int|null  $limit  Maximum number of results
+     * @param  string|null  $format  Response format
+     * @param  array  $destinations  Optional destinations for distance calculation
+     * @param  string|DistanceMode  $distanceMode  Distance mode: "driving", "straightline", or "haversine"
+     * @param  string|DistanceUnits  $distanceUnits  Distance units: "miles" or "km"
+     * @param  int|null  $distanceMaxResults  Maximum number of destinations to return
+     * @param  float|null  $distanceMaxDistance  Maximum distance filter
+     * @param  int|null  $distanceMaxDuration  Maximum duration filter (seconds, driving mode only)
+     * @param  float|null  $distanceMinDistance  Minimum distance filter
+     * @param  int|null  $distanceMinDuration  Minimum duration filter (seconds, driving mode only)
+     * @param  string|DistanceOrderBy  $distanceOrderBy  Sort by "distance" or "duration"
+     * @param  string|DistanceSortOrder  $distanceSortOrder  Sort order: "asc" or "desc"
      */
     public function reverse(
         $query,
         array $fields = [],
         ?int $limit = null,
-        ?string $format = null
+        ?string $format = null,
+        array $destinations = [],
+        string|DistanceMode $distanceMode = DistanceMode::Straightline,
+        string|DistanceUnits $distanceUnits = DistanceUnits::Miles,
+        ?int $distanceMaxResults = null,
+        ?float $distanceMaxDistance = null,
+        ?int $distanceMaxDuration = null,
+        ?float $distanceMinDistance = null,
+        ?int $distanceMinDuration = null,
+        string|DistanceOrderBy $distanceOrderBy = DistanceOrderBy::Distance,
+        string|DistanceSortOrder $distanceSortOrder = DistanceSortOrder::Asc
     ): array {
         $options = [
             RequestOptions::QUERY => [
@@ -349,6 +451,39 @@ class Geocodio
                 'format' => $format,
             ],
         ];
+
+        // Add distance parameters if destinations are provided
+        // Destinations can be either coordinates or addresses
+        if ($destinations !== []) {
+            foreach ($destinations as $destination) {
+                $options[RequestOptions::QUERY]['destinations'][] = $this->formatCoordinateAsString($destination);
+            }
+            $options[RequestOptions::QUERY]['distance_mode'] = $this->normalizeDistanceMode($distanceMode);
+            $options[RequestOptions::QUERY]['distance_units'] = $this->enumValue($distanceUnits);
+
+            // Add optional distance filter parameters
+            if ($distanceMaxResults !== null) {
+                $options[RequestOptions::QUERY]['distance_max_results'] = $distanceMaxResults;
+            }
+            if ($distanceMaxDistance !== null) {
+                $options[RequestOptions::QUERY]['distance_max_distance'] = $distanceMaxDistance;
+            }
+            if ($distanceMaxDuration !== null) {
+                $options[RequestOptions::QUERY]['distance_max_duration'] = $distanceMaxDuration;
+            }
+            if ($distanceMinDistance !== null) {
+                $options[RequestOptions::QUERY]['distance_min_distance'] = $distanceMinDistance;
+            }
+            if ($distanceMinDuration !== null) {
+                $options[RequestOptions::QUERY]['distance_min_duration'] = $distanceMinDuration;
+            }
+
+            // Add sorting parameters when filters are used
+            if ($distanceMaxResults !== null || $distanceMaxDistance !== null || $distanceMaxDuration !== null || $distanceMinDistance !== null || $distanceMinDuration !== null) {
+                $options[RequestOptions::QUERY]['distance_order_by'] = $this->enumValue($distanceOrderBy);
+                $options[RequestOptions::QUERY]['distance_sort_order'] = $this->enumValue($distanceSortOrder);
+            }
+        }
 
         if (is_string($query) || (is_array($query) && is_numeric($query[0]))) {
             $response = $this->sendRequest('GET', 'reverse', $options, $this->singleTimeoutMs);
@@ -361,6 +496,369 @@ class Geocodio
 
         return $this->toResponse($response);
 
+    }
+
+    /**
+     * Calculate distances from a single origin to multiple destinations
+     *
+     * @see https://www.geocod.io/docs/#distance
+     *
+     * @param  Coordinate|string|array  $origin  Single coordinate or address
+     * @param  array<Coordinate|string|array>  $destinations  Array of coordinates or addresses
+     * @param  string|DistanceMode  $mode  Distance mode: "driving", "straightline", or "haversine" (alias for straightline)
+     * @param  string|DistanceUnits  $units  Distance units: "miles" or "km"
+     * @param  int|null  $maxResults  Maximum number of destinations to return
+     * @param  float|null  $maxDistance  Maximum distance filter
+     * @param  int|null  $maxDuration  Maximum duration filter (seconds, driving mode only)
+     * @param  float|null  $minDistance  Minimum distance filter
+     * @param  int|null  $minDuration  Minimum duration filter (seconds, driving mode only)
+     * @param  string|DistanceOrderBy  $orderBy  Sort by "distance" or "duration"
+     * @param  string|DistanceSortOrder  $sortOrder  Sort order: "asc" or "desc"
+     */
+    public function distance(
+        Coordinate|string|array $origin,
+        array $destinations,
+        string|DistanceMode $mode = DistanceMode::Straightline,
+        string|DistanceUnits $units = DistanceUnits::Miles,
+        ?int $maxResults = null,
+        ?float $maxDistance = null,
+        ?int $maxDuration = null,
+        ?float $minDistance = null,
+        ?int $minDuration = null,
+        string|DistanceOrderBy $orderBy = DistanceOrderBy::Distance,
+        string|DistanceSortOrder $sortOrder = DistanceSortOrder::Asc
+    ): array {
+        $queryParams = [
+            'origin' => $this->formatCoordinateAsString($origin),
+            'mode' => $this->normalizeDistanceMode($mode),
+            'units' => $this->enumValue($units),
+        ];
+
+        // Format destinations as destinations[] array
+        foreach ($destinations as $destination) {
+            $queryParams['destinations'][] = $this->formatCoordinateAsString($destination);
+        }
+
+        // Add optional filter parameters
+        if ($maxResults !== null) {
+            $queryParams['max_results'] = $maxResults;
+        }
+
+        if ($maxDistance !== null) {
+            $queryParams['max_distance'] = $maxDistance;
+        }
+
+        if ($maxDuration !== null) {
+            $queryParams['max_duration'] = $maxDuration;
+        }
+
+        if ($minDistance !== null) {
+            $queryParams['min_distance'] = $minDistance;
+        }
+
+        if ($minDuration !== null) {
+            $queryParams['min_duration'] = $minDuration;
+        }
+
+        // Add sorting parameters when filters are used
+        if ($maxResults !== null || $maxDistance !== null || $maxDuration !== null || $minDistance !== null || $minDuration !== null) {
+            $queryParams['order_by'] = $this->enumValue($orderBy);
+            $queryParams['sort_order'] = $this->enumValue($sortOrder);
+        }
+
+        $options = [
+            RequestOptions::QUERY => $queryParams,
+        ];
+
+        $response = $this->sendRequest('GET', 'distance', $options, $this->distanceTimeoutMs);
+
+        return $this->toResponse($response);
+    }
+
+    /**
+     * Calculate distance matrix (multiple origins × destinations)
+     *
+     * @see https://www.geocod.io/docs/#distance
+     *
+     * @param  array<Coordinate|string|array>  $origins  Array of coordinates or addresses
+     * @param  array<Coordinate|string|array>  $destinations  Array of coordinates or addresses
+     * @param  string|DistanceMode  $mode  Distance mode: "driving", "straightline", or "haversine" (alias for straightline)
+     * @param  string|DistanceUnits  $units  Distance units: "miles" or "km"
+     * @param  int|null  $maxResults  Maximum number of destinations to return per origin
+     * @param  float|null  $maxDistance  Maximum distance filter
+     * @param  int|null  $maxDuration  Maximum duration filter (seconds, driving mode only)
+     * @param  float|null  $minDistance  Minimum distance filter
+     * @param  int|null  $minDuration  Minimum duration filter (seconds, driving mode only)
+     * @param  string|DistanceOrderBy  $orderBy  Sort by "distance" or "duration"
+     * @param  string|DistanceSortOrder  $sortOrder  Sort order: "asc" or "desc"
+     */
+    public function distanceMatrix(
+        array $origins,
+        array $destinations,
+        string|DistanceMode $mode = DistanceMode::Straightline,
+        string|DistanceUnits $units = DistanceUnits::Miles,
+        ?int $maxResults = null,
+        ?float $maxDistance = null,
+        ?int $maxDuration = null,
+        ?float $minDistance = null,
+        ?int $minDuration = null,
+        string|DistanceOrderBy $orderBy = DistanceOrderBy::Distance,
+        string|DistanceSortOrder $sortOrder = DistanceSortOrder::Asc
+    ): array {
+        // Format coordinates as objects for POST request (addresses pass through as strings)
+        $formattedOrigins = array_map(
+            fn ($coord): string|array => $this->formatCoordinateAsObject($coord),
+            $origins
+        );
+        $formattedDestinations = array_map(
+            fn ($coord): string|array => $this->formatCoordinateAsObject($coord),
+            $destinations
+        );
+
+        $payload = [
+            'origins' => $formattedOrigins,
+            'destinations' => $formattedDestinations,
+            'mode' => $this->normalizeDistanceMode($mode),
+            'units' => $this->enumValue($units),
+        ];
+
+        // Add optional filter parameters
+        if ($maxResults !== null) {
+            $payload['max_results'] = $maxResults;
+        }
+
+        if ($maxDistance !== null) {
+            $payload['max_distance'] = $maxDistance;
+        }
+
+        if ($maxDuration !== null) {
+            $payload['max_duration'] = $maxDuration;
+        }
+
+        if ($minDistance !== null) {
+            $payload['min_distance'] = $minDistance;
+        }
+
+        if ($minDuration !== null) {
+            $payload['min_duration'] = $minDuration;
+        }
+
+        // Add sorting parameters when filters are used
+        if ($maxResults !== null || $maxDistance !== null || $maxDuration !== null || $minDistance !== null || $minDuration !== null) {
+            $payload['order_by'] = $this->enumValue($orderBy);
+            $payload['sort_order'] = $this->enumValue($sortOrder);
+        }
+
+        $options = [
+            RequestOptions::JSON => $payload,
+        ];
+
+        $response = $this->sendRequest('POST', 'distance-matrix', $options, $this->distanceTimeoutMs);
+
+        return $this->toResponse($response);
+    }
+
+    /**
+     * Create an async distance matrix job
+     *
+     * @see https://www.geocod.io/docs/#distance-matrix
+     *
+     * @param  string  $name  Job name for identification
+     * @param  int|array  $origins  List ID or array of coordinates/addresses
+     * @param  int|array  $destinations  List ID or array of coordinates/addresses
+     * @param  string|DistanceMode  $mode  Distance mode: "driving", "straightline", or "haversine"
+     * @param  string|DistanceUnits  $units  Distance units: "miles" or "km"
+     * @param  int|null  $maxResults  Maximum number of destinations to return per origin
+     * @param  float|null  $maxDistance  Maximum distance filter
+     * @param  int|null  $maxDuration  Maximum duration filter (seconds, driving mode only)
+     * @param  float|null  $minDistance  Minimum distance filter
+     * @param  int|null  $minDuration  Minimum duration filter (seconds, driving mode only)
+     * @param  string|DistanceOrderBy  $orderBy  Sort by "distance" or "duration"
+     * @param  string|DistanceSortOrder  $sortOrder  Sort order: "asc" or "desc"
+     * @param  string|null  $callbackUrl  Optional webhook URL for job completion notification
+     */
+    public function createDistanceMatrixJob(
+        string $name,
+        int|array $origins,
+        int|array $destinations,
+        string|DistanceMode $mode = DistanceMode::Straightline,
+        string|DistanceUnits $units = DistanceUnits::Miles,
+        ?int $maxResults = null,
+        ?float $maxDistance = null,
+        ?int $maxDuration = null,
+        ?float $minDistance = null,
+        ?int $minDuration = null,
+        string|DistanceOrderBy $orderBy = DistanceOrderBy::Distance,
+        string|DistanceSortOrder $sortOrder = DistanceSortOrder::Asc,
+        ?string $callbackUrl = null
+    ): array {
+        $payload = [
+            'name' => $name,
+            'mode' => $this->normalizeDistanceMode($mode),
+            'units' => $this->enumValue($units),
+        ];
+
+        // Handle origins - can be list ID or array of coordinates/addresses
+        if (is_int($origins)) {
+            $payload['origins'] = $origins;
+        } else {
+            $payload['origins'] = array_map(
+                fn ($coord): string|array => $this->formatCoordinateAsObject($coord),
+                $origins
+            );
+        }
+
+        // Handle destinations - can be list ID or array of coordinates/addresses
+        if (is_int($destinations)) {
+            $payload['destinations'] = $destinations;
+        } else {
+            $payload['destinations'] = array_map(
+                fn ($coord): string|array => $this->formatCoordinateAsObject($coord),
+                $destinations
+            );
+        }
+
+        // Add optional filter parameters
+        if ($maxResults !== null) {
+            $payload['max_results'] = $maxResults;
+        }
+        if ($maxDistance !== null) {
+            $payload['max_distance'] = $maxDistance;
+        }
+        if ($maxDuration !== null) {
+            $payload['max_duration'] = $maxDuration;
+        }
+        if ($minDistance !== null) {
+            $payload['min_distance'] = $minDistance;
+        }
+        if ($minDuration !== null) {
+            $payload['min_duration'] = $minDuration;
+        }
+
+        // Add sorting parameters when filters are used
+        if ($maxResults !== null || $maxDistance !== null || $maxDuration !== null || $minDistance !== null || $minDuration !== null) {
+            $payload['order_by'] = $this->enumValue($orderBy);
+            $payload['sort_order'] = $this->enumValue($sortOrder);
+        }
+
+        if ($callbackUrl !== null) {
+            $payload['callback'] = $callbackUrl;
+        }
+
+        $response = $this->sendRequest(
+            'POST',
+            'distance-jobs',
+            [RequestOptions::JSON => $payload],
+            $this->listsTimeoutMs
+        );
+
+        return $this->toResponse($response);
+    }
+
+    /**
+     * Get the status of a distance matrix job
+     *
+     * @see https://www.geocod.io/docs/#distance-matrix
+     */
+    public function distanceMatrixJobStatus(string $identifier): array
+    {
+        $response = $this->sendRequest(
+            'GET',
+            "distance-jobs/{$identifier}",
+            [],
+            $this->listsTimeoutMs
+        );
+
+        return $this->toResponse($response);
+    }
+
+    /**
+     * List all distance matrix jobs
+     *
+     * @see https://www.geocod.io/docs/#distance-matrix
+     */
+    public function distanceMatrixJobs(?int $page = null): array
+    {
+        $options = [];
+
+        if ($page !== null) {
+            $options[RequestOptions::QUERY] = ['page' => $page];
+        }
+
+        $response = $this->sendRequest(
+            'GET',
+            'distance-jobs',
+            $options,
+            $this->listsTimeoutMs
+        );
+
+        return $this->toResponse($response);
+    }
+
+    /**
+     * Download the results of a completed distance matrix job
+     *
+     * @see https://www.geocod.io/docs/#distance-matrix
+     */
+    public function downloadDistanceMatrixJob(string $identifier, string $filePath): void
+    {
+        $response = $this->sendRequest(
+            'GET',
+            "distance-jobs/{$identifier}/download",
+            [
+                RequestOptions::STREAM => true,
+            ],
+            $this->listsTimeoutMs
+        );
+
+        $body = $response->getBody();
+
+        if (! $fileHandle = fopen($filePath, 'w')) {
+            throw new Exception("Unable to open file for writing: {$filePath}");
+        }
+
+        while (! $body->eof()) {
+            $chunk = $body->read(8192);
+            fwrite($fileHandle, $chunk);
+        }
+
+        fclose($fileHandle);
+    }
+
+    /**
+     * Get the results of a completed distance matrix job as parsed array
+     *
+     * Returns the same format as the distance POST endpoint.
+     *
+     * @see https://www.geocod.io/docs/#distance-matrix
+     */
+    public function getDistanceMatrixJobResults(string $identifier): array
+    {
+        $response = $this->sendRequest(
+            'GET',
+            "distance-jobs/{$identifier}/download",
+            [],
+            $this->listsTimeoutMs
+        );
+
+        return $this->toResponse($response);
+    }
+
+    /**
+     * Delete a distance matrix job
+     *
+     * @see https://www.geocod.io/docs/#distance-matrix
+     */
+    public function deleteDistanceMatrixJob(string $identifier): array
+    {
+        $response = $this->sendRequest(
+            'DELETE',
+            "distance-jobs/{$identifier}",
+            [],
+            $this->listsTimeoutMs
+        );
+
+        return $this->toResponse($response);
     }
 
     protected function isSingleQuery($query): bool
@@ -381,7 +879,7 @@ class Geocodio
         ?string $callbackWebhook = null,
         array $fields = [],
         ?string $filename = null
-    ): Response {
+    ): ResponseInterface {
         if (is_file($fileContents) && ! file_exists($fileContents)) {
             throw GeocodioException::fileNotFound($fileContents);
         }
@@ -413,7 +911,7 @@ class Geocodio
         return $this->sendRequest('POST', 'lists', [RequestOptions::MULTIPART => $multipart], $this->listsTimeoutMs);
     }
 
-    protected function toResponse(Response $response): array
+    protected function toResponse(ResponseInterface $response): array
     {
         return json_decode((string) $response->getBody(), true);
     }

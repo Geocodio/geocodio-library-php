@@ -18,6 +18,14 @@
     + [Download a list](#download-a-list)
     + [Fetch all uploaded lists](#fetch-all-uploaded-lists)
     + [Delete uploaded list](#delete-uploaded-list)
+  * [Distance calculations](#distance-calculations)
+    + [Coordinate format with custom IDs](#coordinate-format-with-custom-ids)
+    + [Distance mode and units](#distance-mode-and-units)
+    + [Add distance to geocoding requests](#add-distance-to-geocoding-requests)
+    + [Single origin to multiple destinations](#single-origin-to-multiple-destinations)
+    + [Distance matrix (multiple origins × destinations)](#distance-matrix-multiple-origins--destinations)
+    + [Nearest mode (find closest destinations)](#nearest-mode-find-closest-destinations)
+    + [Async Distance Matrix Jobs](#async-distance-matrix-jobs)
 - [Usage with Laravel](#usage-with-laravel)
 - [Testing](#testing)
 - [Changelog](#changelog)
@@ -323,6 +331,389 @@ The spreadsheet data will always be deleted automatically after 72 hours if it i
 ```php
 $geocoder->deleteList(11950669);
 ```
+
+### Distance calculations
+
+Calculate distances from a single origin to multiple destinations, or compute full distance matrices.
+
+#### Coordinate format with custom IDs
+
+You can add custom identifiers to coordinates using the `lat,lng,id` format. The ID will be returned in the response, making it easy to match results back to your data:
+
+```php
+// String format with ID
+'37.7749,-122.4194,warehouse_1'
+
+// Array format with ID
+[37.7749, -122.4194, 'warehouse_1']
+
+// The ID is returned in the response:
+// [
+//     'query' => '37.7749,-122.4194,warehouse_1',
+//     'location' => [37.7749, -122.4194],
+//     'id' => 'warehouse_1',
+//     'distance_miles' => 3.2,
+//     'distance_km' => 5.1
+// ]
+```
+
+#### Distance mode and units
+
+The SDK provides enums for type-safe distance configuration:
+
+```php
+use Geocodio\Enums\DistanceMode;
+use Geocodio\Enums\DistanceUnits;
+use Geocodio\Enums\DistanceOrderBy;
+use Geocodio\Enums\DistanceSortOrder;
+
+// Available modes
+DistanceMode::Straightline  // Default - great-circle (as the crow flies)
+DistanceMode::Driving       // Road network routing with duration
+
+// Available units
+DistanceUnits::Miles  // Default
+DistanceUnits::Km
+
+// Sorting options
+DistanceOrderBy::Distance  // Default
+DistanceOrderBy::Duration
+
+DistanceSortOrder::Asc   // Default
+DistanceSortOrder::Desc
+```
+
+> **Note:** The default mode is `straightline` (great-circle distance). Use `DistanceMode::Driving` if you need road network routing with duration estimates.
+
+#### Add distance to geocoding requests
+
+You can add distance calculations to existing geocode or reverse geocode requests. Each geocoded result will include a `destinations` array with distances to each destination.
+
+```php
+use Geocodio\Enums\DistanceMode;
+use Geocodio\Enums\DistanceUnits;
+use Geocodio\Enums\DistanceOrderBy;
+use Geocodio\Enums\DistanceSortOrder;
+
+// Geocode an address and calculate distances to store locations
+$response = $geocoder->geocode(
+    '1600 Pennsylvania Ave NW, Washington DC',
+    destinations: [
+        '38.9072,-77.0369,store_dc',
+        '39.2904,-76.6122,store_baltimore',
+        '39.9526,-75.1652,store_philly'
+    ],
+    distanceMode: DistanceMode::Driving,
+    distanceUnits: DistanceUnits::Miles
+);
+
+/*
+Response includes destinations for each geocoded result:
+[
+    'input' => [...],
+    'results' => [
+        [
+            'formatted_address' => '1600 Pennsylvania Ave NW, Washington, DC 20500',
+            'location' => ['lat' => 38.8977, 'lng' => -77.0365],
+            'destinations' => [
+                [
+                    'query' => '38.9072,-77.0369,store_dc',
+                    'location' => [38.9072, -77.0369],
+                    'id' => 'store_dc',
+                    'distance_miles' => 0.8,
+                    'distance_km' => 1.3,
+                    'duration_seconds' => 180
+                ],
+                [
+                    'query' => '39.2904,-76.6122,store_baltimore',
+                    'location' => [39.2904, -76.6122],
+                    'id' => 'store_baltimore',
+                    'distance_miles' => 38.2,
+                    'distance_km' => 61.5,
+                    'duration_seconds' => 2820
+                ],
+                // ...
+            ]
+        ]
+    ]
+]
+*/
+
+// Reverse geocode with distances
+$response = $geocoder->reverse(
+    query: '38.8977,-77.0365',
+    destinations: [
+        '38.9072,-77.0369,capitol',
+        '38.8895,-77.0353,monument'
+    ],
+    distanceMode: DistanceMode::Straightline
+);
+
+// With filtering - find nearest 3 stores within 50 miles
+$response = $geocoder->geocode(
+    '1600 Pennsylvania Ave NW, Washington DC',
+    destinations: [
+        '38.9072,-77.0369,store_1',
+        '39.2904,-76.6122,store_2',
+        '39.9526,-75.1652,store_3',
+        '40.7128,-74.0060,store_4'
+    ],
+    distanceMode: DistanceMode::Driving,
+    distanceMaxResults: 3,
+    distanceMaxDistance: 50.0,
+    distanceOrderBy: DistanceOrderBy::Distance,
+    distanceSortOrder: DistanceSortOrder::Asc
+);
+```
+
+#### Single origin to multiple destinations
+
+```php
+use Geocodio\Enums\DistanceMode;
+use Geocodio\Enums\DistanceUnits;
+use Geocodio\Enums\DistanceOrderBy;
+use Geocodio\Enums\DistanceSortOrder;
+
+// Calculate distances from one origin to multiple destinations
+$response = $geocoder->distance(
+    '37.7749,-122.4194,headquarters',  // Origin with ID
+    [
+        '37.7849,-122.4094,customer_a',
+        '37.7949,-122.3994,customer_b',
+        '37.8049,-122.4294,customer_c'
+    ]
+);
+
+/*
+Response:
+[
+    'origin' => [
+        'query' => '37.7749,-122.4194,headquarters',
+        'location' => [37.7749, -122.4194],
+        'id' => 'headquarters'
+    ],
+    'destinations' => [
+        [
+            'query' => '37.7849,-122.4094,customer_a',
+            'location' => [37.7849, -122.4094],
+            'id' => 'customer_a',
+            'distance_miles' => 0.9,
+            'distance_km' => 1.4
+        ],
+        // ...
+    ]
+]
+*/
+
+// Use driving mode for road network routing (includes duration)
+$response = $geocoder->distance(
+    '37.7749,-122.4194',
+    ['37.7849,-122.4094'],
+    mode: DistanceMode::Driving
+);
+
+// With all filtering and sorting options
+$response = $geocoder->distance(
+    origin: '37.7749,-122.4194,warehouse',
+    destinations: [
+        '37.7849,-122.4094,store_1',
+        '37.7949,-122.3994,store_2',
+        '37.8049,-122.4294,store_3'
+    ],
+    mode: DistanceMode::Driving,
+    units: DistanceUnits::Km,
+    maxResults: 2,
+    maxDistance: 10.0,
+    orderBy: DistanceOrderBy::Distance,
+    sortOrder: DistanceSortOrder::Asc
+);
+
+// Array format for coordinates (with or without ID)
+$response = $geocoder->distance(
+    [37.7749, -122.4194],                    // Without ID
+    [[37.7849, -122.4094, 'dest_1']]         // With ID as third element
+);
+```
+
+#### Distance matrix (multiple origins × destinations)
+
+```php
+use Geocodio\Enums\DistanceMode;
+use Geocodio\Enums\DistanceUnits;
+use Geocodio\Enums\DistanceOrderBy;
+use Geocodio\Enums\DistanceSortOrder;
+
+// Calculate full distance matrix with custom IDs
+$response = $geocoder->distanceMatrix(
+    origins: [
+        '37.7749,-122.4194,warehouse_sf',
+        '37.8049,-122.4294,warehouse_oak'
+    ],
+    destinations: [
+        '37.7849,-122.4094,customer_1',
+        '37.7949,-122.3994,customer_2'
+    ]
+);
+
+/*
+Response structure:
+[
+    'results' => [
+        [
+            'origin' => [
+                'query' => '37.7749,-122.4194,warehouse_sf',
+                'location' => [37.7749, -122.4194],
+                'id' => 'warehouse_sf'
+            ],
+            'destinations' => [
+                [
+                    'query' => '37.7849,-122.4094,customer_1',
+                    'location' => [37.7849, -122.4094],
+                    'id' => 'customer_1',
+                    'distance_miles' => 0.9,
+                    'distance_km' => 1.4
+                ],
+                // ...
+            ]
+        ],
+        [
+            'origin' => [..., 'id' => 'warehouse_oak'],
+            'destinations' => [...]
+        ]
+    ]
+]
+*/
+
+// With driving mode and kilometers
+$response = $geocoder->distanceMatrix(
+    origins: ['37.7749,-122.4194'],
+    destinations: ['37.7849,-122.4094'],
+    mode: DistanceMode::Driving,
+    units: DistanceUnits::Km
+);
+```
+
+#### Nearest mode (find closest destinations)
+
+```php
+use Geocodio\Enums\DistanceMode;
+use Geocodio\Enums\DistanceOrderBy;
+use Geocodio\Enums\DistanceSortOrder;
+
+// Find up to 2 nearest destinations from each origin
+$response = $geocoder->distanceMatrix(
+    origins: ['37.7749,-122.4194'],
+    destinations: ['37.7849,-122.4094', '37.7949,-122.3994', '37.8049,-122.4294'],
+    maxResults: 2
+);
+
+// Filter by maximum distance (in miles or km depending on units)
+$response = $geocoder->distanceMatrix(
+    origins: ['37.7749,-122.4194'],
+    destinations: [...],
+    maxDistance: 2.0
+);
+
+// Filter by minimum and maximum distance
+$response = $geocoder->distanceMatrix(
+    origins: ['37.7749,-122.4194'],
+    destinations: [...],
+    minDistance: 1.0,
+    maxDistance: 10.0
+);
+
+// Filter by duration (seconds, driving mode only)
+$response = $geocoder->distanceMatrix(
+    origins: ['37.7749,-122.4194'],
+    destinations: [...],
+    mode: DistanceMode::Driving,
+    maxDuration: 300,  // 5 minutes
+    minDuration: 60    // 1 minute minimum
+);
+
+// Sort by duration descending
+$response = $geocoder->distanceMatrix(
+    origins: ['37.7749,-122.4194'],
+    destinations: [...],
+    mode: DistanceMode::Driving,
+    maxResults: 5,
+    orderBy: DistanceOrderBy::Duration,
+    sortOrder: DistanceSortOrder::Desc
+);
+```
+
+#### Async Distance Matrix Jobs
+
+For large distance matrix calculations, use async jobs that process in the background.
+
+```php
+use Geocodio\Enums\DistanceMode;
+use Geocodio\Enums\DistanceUnits;
+
+// Create a new distance matrix job
+$job = $geocoder->createDistanceMatrixJob(
+    name: 'My Distance Calculation',
+    origins: ['37.7749,-122.4194', '37.8049,-122.4294'],
+    destinations: ['37.7849,-122.4094', '37.7949,-122.3994'],
+    mode: DistanceMode::Driving,
+    units: DistanceUnits::Miles,
+    callbackUrl: 'https://example.com/webhook'  // Optional
+);
+
+// Or use list IDs from previously uploaded lists
+$job = $geocoder->createDistanceMatrixJob(
+    name: 'Distance from List',
+    origins: 12345,       // List ID
+    destinations: 67890,  // List ID
+    mode: DistanceMode::Straightline
+);
+
+echo $job['id'];  // Job identifier
+
+// Check job status
+$status = $geocoder->distanceMatrixJobStatus($job['id']);
+/*
+[
+    'id' => 'abc123',
+    'name' => 'My Distance Calculation',
+    'status' => [
+        'state' => 'COMPLETED',  // or 'PROCESSING', 'FAILED'
+        'progress' => 100,
+        'message' => 'Completed'
+    ],
+    'download_url' => 'https://api.geocod.io/v1.9/distance-matrix/abc123/download',
+    'expires_at' => '2025-01-15T12:00:00.000000Z'
+]
+*/
+
+// List all jobs
+$jobs = $geocoder->distanceMatrixJobs();
+$jobs = $geocoder->distanceMatrixJobs(page: 2);  // Paginated
+
+// Get job results as parsed array (same format as distance POST)
+$results = $geocoder->getDistanceMatrixJobResults($job['id']);
+/*
+[
+    'results' => [
+        [
+            'origin' => ['query' => '...', 'location' => [...], 'id' => '...'],
+            'destinations' => [
+                ['query' => '...', 'location' => [...], 'id' => '...', 'distance_miles' => 1.2, ...]
+            ]
+        ],
+        // ...
+    ]
+]
+*/
+
+// Or download to file for very large results
+$geocoder->downloadDistanceMatrixJob($job['id'], '/path/to/results.json');
+
+// Delete a job
+$geocoder->deleteDistanceMatrixJob($job['id']);
+```
+
+> Note: Distance lookups are billed separately, please refer to https://www.geocod.io/pricing/ for more information.
 
 ## Usage with Laravel
 
