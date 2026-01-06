@@ -74,7 +74,7 @@ class Geocodio
     /**
      * Current SDK version
      */
-    const SDK_VERSION = '2.6.0';
+    const SDK_VERSION = '2.7.0';
 
     /**
      * Timeout for single geocoding requests in milliseconds
