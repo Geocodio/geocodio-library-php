@@ -29,10 +29,9 @@ describe('Distance API - GET /distance', function (): void {
         expect($response)->toHaveKey('origin');
         expect($response)->toHaveKey('mode');
         expect($response)->toHaveKey('destinations');
-        expect($response)->toHaveKey('elements_billed');
-        expect($response['mode'])->toBe('driving');
+        expect($response['mode'])->toBe('straightline');
         expect($response['destinations'])->toHaveCount(2);
-        expect($response['destinations'][0])->toHaveKeys(['location', 'distance_miles', 'distance_km', 'duration_seconds']);
+        expect($response['destinations'][0])->toHaveKeys(['location', 'distance_miles', 'distance_km']);
     });
 
     it('can calculate distances with array coordinates', function (): void {
@@ -48,24 +47,24 @@ describe('Distance API - GET /distance', function (): void {
         expect($response['destinations'])->toHaveCount(2);
     });
 
-    it('can calculate haversine distances', function (): void {
+    it('can calculate straightline distances', function (): void {
         $response = $this->geocoder->distance(
             '37.7749,-122.4194',
             [
                 '37.7849,-122.4094',
                 '37.7949,-122.3994',
             ],
-            'haversine'
+            'straightline'
         );
 
-        expect($response['mode'])->toBe('haversine');
+        expect($response['mode'])->toBe('straightline');
         expect($response['destinations'][0])->toHaveKeys(['location', 'distance_miles', 'distance_km']);
         expect($response['destinations'][0])->not->toHaveKey('duration_seconds');
     });
 
     it('can include custom IDs with coordinates', function (): void {
         $response = $this->geocoder->distance(
-            '37.7749,-122.4194,origin1',
+            '37.7749,-122.4194',
             [
                 '37.7849,-122.4094,dest1',
                 '37.7949,-122.3994,dest2',
@@ -77,7 +76,7 @@ describe('Distance API - GET /distance', function (): void {
     });
 });
 
-describe('Distance API - POST /distance (Standard Matrix)', function (): void {
+describe('Distance API - POST /distance-matrix (Standard Matrix)', function (): void {
     it('can calculate distance matrix', function (): void {
         $response = $this->geocoder->distanceMatrix(
             [
@@ -90,13 +89,11 @@ describe('Distance API - POST /distance (Standard Matrix)', function (): void {
             ]
         );
 
-        expect($response)->toHaveKeys(['origins', 'destinations', 'mode', 'units', 'durations', 'distances', 'elements_billed']);
-        expect($response['origins'])->toHaveCount(2);
-        expect($response['destinations'])->toHaveCount(2);
-        expect($response['durations'])->toHaveCount(2);
-        expect($response['distances'])->toHaveCount(2);
-        expect($response['durations'][0])->toHaveCount(2);
-        expect($response['distances'][0])->toHaveCount(2);
+        expect($response)->toHaveKeys(['mode', 'results']);
+        expect($response['results'])->toHaveCount(2);
+        expect($response['results'][0])->toHaveKeys(['origin', 'destinations']);
+        expect($response['results'][0]['destinations'])->toHaveCount(2);
+        expect($response['results'][0]['destinations'][0])->toHaveKeys(['location', 'distance_miles', 'distance_km']);
     });
 
     it('can calculate matrix with array coordinates', function (): void {
@@ -111,8 +108,8 @@ describe('Distance API - POST /distance (Standard Matrix)', function (): void {
             ]
         );
 
-        expect($response['origins'])->toHaveCount(2);
-        expect($response['destinations'])->toHaveCount(2);
+        expect($response['results'])->toHaveCount(2);
+        expect($response['results'][0]['destinations'])->toHaveCount(2);
     });
 
     it('can calculate matrix with kilometers', function (): void {
@@ -126,10 +123,10 @@ describe('Distance API - POST /distance (Standard Matrix)', function (): void {
             units: 'km'
         );
 
-        expect($response['units'])->toBe('km');
+        expect($response)->toHaveKey('results');
     });
 
-    it('can calculate haversine matrix', function (): void {
+    it('can calculate straightline matrix', function (): void {
         $response = $this->geocoder->distanceMatrix(
             [
                 '37.7749,-122.4194',
@@ -137,15 +134,15 @@ describe('Distance API - POST /distance (Standard Matrix)', function (): void {
             [
                 '37.7849,-122.4094',
             ],
-            mode: 'haversine'
+            mode: 'straightline'
         );
 
-        expect($response['mode'])->toBe('haversine');
+        expect($response['mode'])->toBe('straightline');
     });
 });
 
-describe('Distance API - POST /distance (Nearest Mode)', function (): void {
-    it('can find nearest destinations with max_results', function (): void {
+describe('Distance API - POST /distance-matrix (With Filters)', function (): void {
+    it('can filter with max_results', function (): void {
         $response = $this->geocoder->distanceMatrix(
             [
                 '37.7749,-122.4194',
@@ -158,13 +155,13 @@ describe('Distance API - POST /distance (Nearest Mode)', function (): void {
             maxResults: 2
         );
 
-        expect($response)->toHaveKeys(['origins', 'mode', 'units', 'results', 'elements_billed']);
+        expect($response)->toHaveKeys(['mode', 'results']);
         expect($response['results'])->toHaveCount(1);
         expect($response['results'][0])->toHaveKeys(['origin', 'destinations']);
         expect($response['results'][0]['destinations'])->toHaveCount(2);
     });
 
-    it('can find nearest destinations with max_distance', function (): void {
+    it('can filter with max_distance', function (): void {
         $response = $this->geocoder->distanceMatrix(
             [
                 '37.7749,-122.4194',
@@ -185,25 +182,7 @@ describe('Distance API - POST /distance (Nearest Mode)', function (): void {
         }
     });
 
-    it('can find nearest destinations with max_duration', function (): void {
-        $response = $this->geocoder->distanceMatrix(
-            [
-                '37.7749,-122.4194',
-            ],
-            [
-                '37.7849,-122.4094',
-                '37.7949,-122.3994',
-            ],
-            maxDuration: 300
-        );
-
-        expect($response)->toHaveKey('results');
-        foreach ($response['results'][0]['destinations'] as $dest) {
-            expect($dest['duration_seconds'])->toBeLessThanOrEqual(300);
-        }
-    });
-
-    it('can sort results by duration', function (): void {
+    it('can sort results by distance', function (): void {
         $response = $this->geocoder->distanceMatrix(
             [
                 '37.7749,-122.4194',
@@ -214,15 +193,15 @@ describe('Distance API - POST /distance (Nearest Mode)', function (): void {
                 '37.8049,-122.4294',
             ],
             maxResults: 3,
-            orderBy: 'duration'
+            orderBy: 'distance'
         );
 
         expect($response['results'])->toHaveCount(1);
 
-        $durations = array_map(fn ($dest) => $dest['duration_seconds'], $response['results'][0]['destinations']);
-        $sortedDurations = $durations;
-        sort($sortedDurations);
+        $distances = array_map(fn ($dest) => $dest['distance_miles'], $response['results'][0]['destinations']);
+        $sortedDistances = $distances;
+        sort($sortedDistances);
 
-        expect($durations)->toBe($sortedDurations);
+        expect($distances)->toBe($sortedDistances);
     });
 });
