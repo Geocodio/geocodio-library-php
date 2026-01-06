@@ -562,9 +562,13 @@ class Geocodio
         }
 
         // Build query string manually to ensure destinations[] format (not destinations[0])
+        // Also preserve commas unencoded as the API expects them that way for custom IDs
         $queryString = http_build_query($queryParams);
         foreach ($destinations as $destination) {
-            $queryString .= '&'.urlencode('destinations[]').'='.urlencode($this->formatCoordinateAsString($destination));
+            $encoded = urlencode($this->formatCoordinateAsString($destination));
+            // Decode commas back to literal commas as the API expects
+            $encoded = str_replace('%2C', ',', $encoded);
+            $queryString .= '&destinations[]='.$encoded;
         }
 
         $response = $this->sendRequest('GET', 'distance?'.$queryString, [], $this->distanceTimeoutMs);
