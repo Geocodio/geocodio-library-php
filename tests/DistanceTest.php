@@ -68,9 +68,11 @@ describe('Distance API - GET /distance', function (): void {
             [
                 '37.7849,-122.4094,dest1',
                 '37.7949,-122.3994,dest2',
-            ]
+            ],
+            'driving'
         );
 
+        expect($response['mode'])->toBe('driving');
         expect($response['destinations'][0]['id'])->toBe('dest1');
         expect($response['destinations'][1]['id'])->toBe('dest2');
     });
