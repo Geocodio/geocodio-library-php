@@ -66,15 +66,15 @@ describe('Distance API - GET /distance', function (): void {
         $response = $this->geocoder->distance(
             '37.7749,-122.4194',
             [
-                '37.7849,-122.4094,dest1',
-                '37.7949,-122.3994,dest2',
+                '37.7849,-122.4094,destA',
+                '37.7949,-122.3994,destB',
             ],
             'driving'
         );
 
         expect($response['mode'])->toBe('driving');
-        expect($response['destinations'][0]['id'])->toBe('dest1');
-        expect($response['destinations'][1]['id'])->toBe('dest2');
+        expect($response['destinations'][0]['id'])->toBe('destA');
+        expect($response['destinations'][1]['id'])->toBe('destB');
     });
 });
 

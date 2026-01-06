@@ -534,6 +534,11 @@ class Geocodio
             'units' => $this->enumValue($units),
         ];
 
+        // Format destinations as destinations[] array
+        foreach ($destinations as $destination) {
+            $queryParams['destinations'][] = $this->formatCoordinateAsString($destination);
+        }
+
         // Add optional filter parameters
         if ($maxResults !== null) {
             $queryParams['max_results'] = $maxResults;
@@ -561,17 +566,11 @@ class Geocodio
             $queryParams['sort_order'] = $this->enumValue($sortOrder);
         }
 
-        // Build query string manually to ensure destinations[] format (not destinations[0])
-        // Also preserve commas unencoded as the API expects them that way for custom IDs
-        $queryString = http_build_query($queryParams);
-        foreach ($destinations as $destination) {
-            $encoded = urlencode($this->formatCoordinateAsString($destination));
-            // Decode commas back to literal commas as the API expects
-            $encoded = str_replace('%2C', ',', $encoded);
-            $queryString .= '&destinations[]='.$encoded;
-        }
+        $options = [
+            RequestOptions::QUERY => $queryParams,
+        ];
 
-        $response = $this->sendRequest('GET', 'distance?'.$queryString, [], $this->distanceTimeoutMs);
+        $response = $this->sendRequest('GET', 'distance', $options, $this->distanceTimeoutMs);
 
         return $this->toResponse($response);
     }
