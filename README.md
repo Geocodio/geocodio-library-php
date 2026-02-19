@@ -270,7 +270,7 @@ array:6 [
     "time_left_description" => null
     "time_left_seconds" => null
   ]
-  "download_url" => "https://api.geocod.io/v1.9/lists/11953719/download"
+  "download_url" => "https://api.geocod.io/v1.10/lists/11953719/download"
   "expires_at" => "2025-08-22T20:36:10.000000Z"
 ]
 */
@@ -307,13 +307,13 @@ array:9 [
         "time_left_description" => null
         "time_left_seconds" => null
       ]
-      "download_url" => "https://api.geocod.io/v1.9/lists/11953719/download"
+      "download_url" => "https://api.geocod.io/v1.10/lists/11953719/download"
       "expires_at" => "2025-08-22T20:36:10.000000Z"
     ]
-  "first_page_url" => "https://api.geocod.io/v1.9/lists?page=1"
+  "first_page_url" => "https://api.geocod.io/v1.10/lists?page=1"
   "from" => 1
   "next_page_url" => null
-  "path" => "https://api.geocod.io/v1.9/lists"
+  "path" => "https://api.geocod.io/v1.10/lists"
   "per_page" => 15
   "prev_page_url" => null
   "to" => 3
@@ -681,7 +681,7 @@ $status = $geocoder->distanceMatrixJobStatus($job['id']);
         'progress' => 100,
         'message' => 'Completed'
     ],
-    'download_url' => 'https://api.geocod.io/v1.9/distance-matrix/abc123/download',
+    'download_url' => 'https://api.geocod.io/v1.10/distance-matrix/abc123/download',
     'expires_at' => '2025-01-15T12:00:00.000000Z'
 ]
 */
