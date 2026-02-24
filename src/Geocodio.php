@@ -36,7 +36,7 @@ class Geocodio
      *
      * @see https://www.geocod.io/docs/#changelog
      */
-    private string $apiVersion = 'v1.9';
+    private string $apiVersion = 'v1.10';
 
     /**
      * @var int Timeout for single geocoding requests in milliseconds
