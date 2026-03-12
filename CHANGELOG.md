@@ -2,6 +2,10 @@
 
 All notable changes to `geocodio-library-php` will be documented in this file
 
+## 2.9 - 2026-03-12
+
+- Updated default API version to v1.11
+
 ## 2.8 - 2026-02-24
 
 - Update to use Geocodio API v1.10
