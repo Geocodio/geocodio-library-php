@@ -46,7 +46,7 @@ describe('Forward Geocoding', function (): void {
     it('can perform batch forward geocode with components', function (): void {
         $response = $this->geocoder->geocode([
             ['street' => '1109 N Highland St', 'postal_code' => '22201'],
-            ['street' => '525 University Ave', 'city' => 'Toronto', 'state' => 'Ontario', 'country' => 'Canada'],
+            ['street' => '525 University Ave', 'city' => 'Toronto', 'state_province' => 'Ontario', 'country' => 'Canada'],
         ]);
 
         expect($response['results'][0]['response']['results'][0]['formatted_address'])
