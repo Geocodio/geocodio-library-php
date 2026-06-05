@@ -60,20 +60,7 @@ $geocoder->setApiKey('YOUR_API_KEY');
 $response = $geocoder->geocode('1109 N Highland St, Arlington, VA');
 dump($response);
 /*
-array:2 [
-  "input" => array:2 [
-    "address_components" => array:8 [
-      "number" => "1109"
-      "predirectional" => "N"
-      "street" => "Highland"
-      "suffix" => "St"
-      "formatted_street" => "N Highland St"
-      "city" => "Arlington"
-      "state" => "VA"
-      "country" => "US"
-    ]
-    "formatted_address" => "1109 N Highland St, Arlington, VA"
-  ]
+array:1 [
   "results" => array:1 [
     0 => array:6 [
       "address_components" => array:10 [
@@ -84,8 +71,8 @@ array:2 [
         "formatted_street" => "N Highland St"
         "city" => "Arlington"
         "county" => "Arlington County"
-        "state" => "VA"
-        "zip" => "22201"
+        "state_province" => "VA"
+        "postal_code" => "22201"
         "country" => "US"
       ]
       "formatted_address" => "1109 N Highland St, Arlington, VA 22201"
@@ -166,7 +153,7 @@ For forward geocoding requests it is possible to supply [individual address comp
 $response = $geocoder->geocode([
     'street' => '1109 N Highland St',
     'city' => 'Arlington',
-    'state' => 'VA',
+    'state_province' => 'VA',
     'postal_code' => '22201'
 ]);
 
@@ -174,12 +161,12 @@ $response = $geocoder->geocode([
     [
         'street' => '1109 N Highland St',
         'city' => 'Arlington',
-        'state' => 'VA'
+        'state_province' => 'VA'
     ],
     [
         'street' => '525 University Ave',
         'city' => 'Toronto',
-        'state' => 'ON',
+        'state_province' => 'ON',
         'country' => 'Canada',
     ],
 );
@@ -270,7 +257,7 @@ array:6 [
     "time_left_description" => null
     "time_left_seconds" => null
   ]
-  "download_url" => "https://api.geocod.io/v1.11/lists/11953719/download"
+  "download_url" => "https://api.geocod.io/v2/lists/11953719/download"
   "expires_at" => "2025-08-22T20:36:10.000000Z"
 ]
 */
@@ -307,13 +294,13 @@ array:9 [
         "time_left_description" => null
         "time_left_seconds" => null
       ]
-      "download_url" => "https://api.geocod.io/v1.11/lists/11953719/download"
+      "download_url" => "https://api.geocod.io/v2/lists/11953719/download"
       "expires_at" => "2025-08-22T20:36:10.000000Z"
     ]
-  "first_page_url" => "https://api.geocod.io/v1.11/lists?page=1"
+  "first_page_url" => "https://api.geocod.io/v2/lists?page=1"
   "from" => 1
   "next_page_url" => null
-  "path" => "https://api.geocod.io/v1.11/lists"
+  "path" => "https://api.geocod.io/v2/lists"
   "per_page" => 15
   "prev_page_url" => null
   "to" => 3
@@ -410,7 +397,6 @@ $response = $geocoder->geocode(
 /*
 Response includes destinations for each geocoded result:
 [
-    'input' => [...],
     'results' => [
         [
             'formatted_address' => '1600 Pennsylvania Ave NW, Washington, DC 20500',
@@ -681,7 +667,7 @@ $status = $geocoder->distanceMatrixJobStatus($job['id']);
         'progress' => 100,
         'message' => 'Completed'
     ],
-    'download_url' => 'https://api.geocod.io/v1.9/distance-matrix/abc123/download',
+    'download_url' => 'https://api.geocod.io/v2/distance-matrix/abc123/download',
     'expires_at' => '2025-01-15T12:00:00.000000Z'
 ]
 */

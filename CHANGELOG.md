@@ -2,6 +2,14 @@
 
 All notable changes to `geocodio-library-php` will be documented in this file
 
+## 3.0.0 - 2026-06-05
+
+- **Breaking**: Migrated to Geocodio API v2
+- **Breaking**: Top-level `input` object removed from `/geocode` and `/reverse` responses; parsed address is now found inside `results[].address_components`
+- **Breaking**: Renamed address component keys: `zip` → `postal_code`, `state` → `state_province`, `secondaryunit` → `unit_type`, `secondarynumber` → `unit_number` (applies to both `address_components` and `address_components_secondary`)
+- Added `state_province` to the address component input parameter allowlist (alongside the still-accepted `state`)
+- Bumped SDK version to 3.0.0
+
 ## 2.9 - 2026-03-12
 
 - Updated default API version to v1.11
