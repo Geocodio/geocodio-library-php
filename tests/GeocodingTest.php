@@ -35,12 +35,15 @@ describe('Forward Geocoding', function (): void {
         $response = $this->geocoder->geocode([
             '1109 N Highland St, Arlington VA',
             '525 University Ave, Toronto, ON, Canada',
+            '10 Downing St, London, United Kingdom',
         ]);
 
         expect($response['results'][0]['response']['results'][0]['formatted_address'])
             ->toBe('1109 N Highland St, Arlington, VA 22201');
         expect($response['results'][1]['response']['results'][0]['formatted_address'])
             ->toBe('525 University Ave, Toronto, ON M5G');
+        expect($response['results'][2]['response']['results'][0]['formatted_address'])
+            ->toBe('10 Downing St, London SW1A 2AA');
     });
 
     it('can perform batch forward geocode with components', function (): void {
@@ -113,6 +116,15 @@ describe('Additional Features', function (): void {
 
         expect($response['results'][0]['response']['results'][0]['fields']['timezone']['abbreviation'])
             ->toBe('EST');
+    });
+
+    it('can append UK-specific fields', function (): void {
+        $response = $this->geocoder->geocode('10 Downing St, London, United Kingdom', ['uk-westminster', 'uk-local']);
+
+        expect($response['results'][0]['fields']['uk_westminster'][0]['name'])
+            ->toBe('Cities of London and Westminster');
+        expect($response['results'][0]['fields']['uk_local'][0]['district_type'])
+            ->toBe('ward');
     });
 
     it('can use limit parameter', function (): void {
