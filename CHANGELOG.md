@@ -2,6 +2,12 @@
 
 All notable changes to `geocodio-library-php` will be documented in this file
 
+## Unreleased
+
+- Documented the API's `_warnings` response key, including where warnings appear on single, batch, per-result, lists and distance matrix job responses
+- Added `GeocodioException::warnings()`, exposing warnings attached to error responses that were previously discarded
+- Added tests locking in `_warnings` passthrough on every response shape
+
 ## 3.0.0 - 2026-06-05
 
 - **Breaking**: Migrated to Geocodio API v2

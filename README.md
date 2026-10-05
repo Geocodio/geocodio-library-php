@@ -11,6 +11,7 @@
   * [Field appends](#field-appends)
   * [Address components](#address-components)
   * [Limit results](#limit-results)
+  * [Warnings](#warnings)
   * [Uploading Lists](#uploading-lists)
     + [Upload list from a file](#upload-list-from-a-file)
     + [Upload list of inline data](#upload-list-of-inline-data)
@@ -195,6 +196,46 @@ Optionally limit the number of maximum geocoding results by using the third para
 $response = $geocoder->geocode('1109 N Highland St, Arlington, VA', [], 1); // Only get the first result
 $response = $geocoder->reverse('38.9002898,-76.9990361', ['timezone'], 5); // Return up to 5 geocoding results
 ```
+
+### Warnings
+
+The API reports non-fatal advisories under a `_warnings` key — a misspelled field name, an unexpected query parameter, a superseded API version, or an append that had to be skipped. The request still succeeds, so nothing is thrown; the warnings simply ride along with the response.
+
+Responses are returned decoded and verbatim, so warnings are read straight off the array. The key is only present when there is at least one warning, so always coalesce:
+
+```php
+$response = $geocoder->geocode('1109 N Highland St, Arlington, VA', ['congress']);
+
+foreach ($response['_warnings'] ?? [] as $warning) {
+    error_log($warning);
+    // "The field congress is not recognized. Did you mean cd?"
+}
+```
+
+Warnings show up in a few places, depending on what raised them:
+
+| Where | Applies to |
+| -- | -- |
+| `$response['_warnings']` | Single `geocode(...)` and `reverse(...)`, and the lists and distance matrix job methods |
+| `$response['results'][$i]['response']['_warnings']` | Batch `geocode(...)` and `reverse(...)` — warnings are attached per address |
+| `$response['results'][$i]['_warnings']` | An individual geocoding result, e.g. an `ffiec` append skipped because the match is not street-level |
+
+Warnings are also attached to error responses, where they are available on the exception:
+
+```php
+try {
+    $response = $geocoder->geocode('1109 N Highland St', ['congress']);
+} catch (Geocodio\Exceptions\GeocodioException $e) {
+    echo $e->getMessage(); // "Request Error: Could not geocode address. Postal code or city required."
+
+    foreach ($e->warnings() as $warning) {
+        echo $warning; // "The field congress is not recognized. Did you mean cd?"
+    }
+}
+```
+
+> [!TIP]
+> Warnings are worth logging during development — they are how the API tells you a field append was silently skipped, which otherwise looks like missing data.
 
 ### Uploading Lists
 

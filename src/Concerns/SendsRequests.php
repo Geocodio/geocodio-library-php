@@ -45,7 +45,8 @@ trait SendsRequests
 
             throw GeocodioException::requestError(
                 $response['error'] ?? 'unknown error',
-                $e
+                $e,
+                is_array($response) ? ($response['_warnings'] ?? []) : []
             );
         }
 
