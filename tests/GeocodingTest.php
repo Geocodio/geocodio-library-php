@@ -81,7 +81,7 @@ describe('Reverse Geocoding', function (): void {
         expect($responseStr['results'][0]['response']['results'][0]['formatted_address'])
             ->toBe('100 E Washington St, Nashville, NC 27856');
         expect($responseStr['results'][1]['response']['results'][0]['formatted_address'])
-            ->toBe('3026 S 1st St, Garland, TX 75041');
+            ->toBe('3034 S 1st St, Garland, TX 75041');
 
         $responseArr = $this->geocoder->reverse([
             ['35.9746000', '-77.9658000'],
@@ -91,7 +91,7 @@ describe('Reverse Geocoding', function (): void {
         expect($responseArr['results'][0]['response']['results'][0]['formatted_address'])
             ->toBe('100 E Washington St, Nashville, NC 27856');
         expect($responseArr['results'][1]['response']['results'][0]['formatted_address'])
-            ->toBe('3026 S 1st St, Garland, TX 75041');
+            ->toBe('3034 S 1st St, Garland, TX 75041');
     });
 });
 
