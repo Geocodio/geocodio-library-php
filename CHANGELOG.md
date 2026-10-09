@@ -2,6 +2,10 @@
 
 All notable changes to `geocodio-library-php` will be documented in this file
 
+## 3.3.0 - 2026-10-12
+
+- Added `calculationType` option to `distanceMatrix()` and `createDistanceMatrixJob()`, with a new `DistanceCalculationType` enum (`Matrix`, `Pairs`). `Pairs` measures origin i against destination i only, instead of every origin against every destination
+
 ## 3.2.0 - 2026-10-06
 
 - Documented the API's `_warnings` response key, including where warnings appear on single, batch, per-result, lists and distance matrix job responses

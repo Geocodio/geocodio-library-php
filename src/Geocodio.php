@@ -5,6 +5,7 @@ namespace Geocodio;
 use Exception;
 use Geocodio\Concerns\SendsRequests;
 use Geocodio\Data\Coordinate;
+use Geocodio\Enums\DistanceCalculationType;
 use Geocodio\Enums\DistanceMode;
 use Geocodio\Enums\DistanceOrderBy;
 use Geocodio\Enums\DistanceSortOrder;
@@ -75,7 +76,7 @@ class Geocodio
     /**
      * Current SDK version
      */
-    const SDK_VERSION = '3.2.0';
+    const SDK_VERSION = '3.3.0';
 
     /**
      * Timeout for single geocoding requests in milliseconds
@@ -592,6 +593,7 @@ class Geocodio
      * @param  int|null  $minDuration  Minimum duration filter (seconds, driving mode only)
      * @param  string|DistanceOrderBy  $orderBy  Sort by "distance" or "duration"
      * @param  string|DistanceSortOrder  $sortOrder  Sort order: "asc" or "desc"
+     * @param  string|DistanceCalculationType|null  $calculationType  "matrix" (default, every origin × every destination) or "pairs" (origin i to destination i only; lists must be equal length and filters are not allowed)
      */
     public function distanceMatrix(
         array $origins,
@@ -604,7 +606,8 @@ class Geocodio
         ?float $minDistance = null,
         ?int $minDuration = null,
         string|DistanceOrderBy $orderBy = DistanceOrderBy::Distance,
-        string|DistanceSortOrder $sortOrder = DistanceSortOrder::Asc
+        string|DistanceSortOrder $sortOrder = DistanceSortOrder::Asc,
+        string|DistanceCalculationType|null $calculationType = null
     ): array {
         // Format coordinates as objects for POST request (addresses pass through as strings)
         $formattedOrigins = array_map(
@@ -622,6 +625,10 @@ class Geocodio
             'mode' => $this->normalizeDistanceMode($mode),
             'units' => $this->enumValue($units),
         ];
+
+        if ($calculationType !== null) {
+            $payload['calculation_type'] = $this->enumValue($calculationType);
+        }
 
         // Add optional filter parameters
         if ($maxResults !== null) {
@@ -677,6 +684,7 @@ class Geocodio
      * @param  string|DistanceOrderBy  $orderBy  Sort by "distance" or "duration"
      * @param  string|DistanceSortOrder  $sortOrder  Sort order: "asc" or "desc"
      * @param  string|null  $callbackUrl  Optional webhook URL for job completion notification
+     * @param  string|DistanceCalculationType|null  $calculationType  "matrix" (default, every origin × every destination) or "pairs" (origin i to destination i only; lists must be equal length and filters are not allowed)
      */
     public function createDistanceMatrixJob(
         string $name,
@@ -691,7 +699,8 @@ class Geocodio
         ?int $minDuration = null,
         string|DistanceOrderBy $orderBy = DistanceOrderBy::Distance,
         string|DistanceSortOrder $sortOrder = DistanceSortOrder::Asc,
-        ?string $callbackUrl = null
+        ?string $callbackUrl = null,
+        string|DistanceCalculationType|null $calculationType = null
     ): array {
         $payload = [
             'name' => $name,
@@ -744,6 +753,10 @@ class Geocodio
 
         if ($callbackUrl !== null) {
             $payload['callback'] = $callbackUrl;
+        }
+
+        if ($calculationType !== null) {
+            $payload['calculation_type'] = $this->enumValue($calculationType);
         }
 
         $response = $this->sendRequest(

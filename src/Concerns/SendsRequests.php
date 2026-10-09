@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Geocodio\Concerns;
 
 use Geocodio\Data\Coordinate;
+use Geocodio\Enums\DistanceCalculationType;
 use Geocodio\Enums\DistanceMode;
 use Geocodio\Enums\DistanceOrderBy;
 use Geocodio\Enums\DistanceSortOrder;
@@ -183,9 +184,9 @@ trait SendsRequests
     /**
      * Get string value from enum or string
      */
-    protected function enumValue(string|DistanceUnits|DistanceOrderBy|DistanceSortOrder $value): string
+    protected function enumValue(string|DistanceUnits|DistanceOrderBy|DistanceSortOrder|DistanceCalculationType $value): string
     {
-        if ($value instanceof DistanceUnits || $value instanceof DistanceOrderBy || $value instanceof DistanceSortOrder) {
+        if ($value instanceof DistanceUnits || $value instanceof DistanceOrderBy || $value instanceof DistanceSortOrder || $value instanceof DistanceCalculationType) {
             return $value->value;
         }
 
