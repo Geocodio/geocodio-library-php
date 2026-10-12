@@ -409,6 +409,7 @@ use Geocodio\Enums\DistanceMode;
 use Geocodio\Enums\DistanceUnits;
 use Geocodio\Enums\DistanceOrderBy;
 use Geocodio\Enums\DistanceSortOrder;
+use Geocodio\Enums\DistanceCalculationType;
 
 // Available modes
 DistanceMode::Straightline  // Default - great-circle (as the crow flies)
@@ -424,6 +425,10 @@ DistanceOrderBy::Duration
 
 DistanceSortOrder::Asc   // Default
 DistanceSortOrder::Desc
+
+// Calculation type (distance matrix and distance matrix jobs only)
+DistanceCalculationType::Matrix  // Default - every origin × every destination
+DistanceCalculationType::Pairs   // Origin i to destination i only
 ```
 
 > **Note:** The default mode is `straightline` (great-circle distance). Use `DistanceMode::Driving` if you need road network routing with duration estimates.
@@ -584,6 +589,7 @@ use Geocodio\Enums\DistanceMode;
 use Geocodio\Enums\DistanceUnits;
 use Geocodio\Enums\DistanceOrderBy;
 use Geocodio\Enums\DistanceSortOrder;
+use Geocodio\Enums\DistanceCalculationType;
 
 // Calculate full distance matrix with custom IDs
 $response = $geocoder->distanceMatrix(
@@ -633,7 +639,17 @@ $response = $geocoder->distanceMatrix(
     mode: DistanceMode::Driving,
     units: DistanceUnits::Km
 );
+
+// One-to-one pairs: origin i is measured against destination i only,
+// so each result has a single destination
+$response = $geocoder->distanceMatrix(
+    origins: ['38.8977,-77.0365,home', '38.886672,-77.094735,office'],
+    destinations: ['38.9072,-77.0369,capitol', '38.8814,-77.0916,pentagon'],
+    calculationType: DistanceCalculationType::Pairs
+);
 ```
+
+> **Note:** With `DistanceCalculationType::Pairs`, `origins` and `destinations` must be the same length, and the `maxResults`, `maxDistance`, `maxDuration`, `minDistance` and `minDuration` filters are not supported. The API returns a 422 error otherwise.
 
 #### Nearest mode (find closest destinations)
 
@@ -691,6 +707,7 @@ For large distance matrix calculations, use async jobs that process in the backg
 ```php
 use Geocodio\Enums\DistanceMode;
 use Geocodio\Enums\DistanceUnits;
+use Geocodio\Enums\DistanceCalculationType;
 
 // Create a new distance matrix job
 $job = $geocoder->createDistanceMatrixJob(
@@ -708,6 +725,14 @@ $job = $geocoder->createDistanceMatrixJob(
     origins: 12345,       // List ID
     destinations: 67890,  // List ID
     mode: DistanceMode::Straightline
+);
+
+// One-to-one pairs instead of a full matrix
+$job = $geocoder->createDistanceMatrixJob(
+    name: 'Commutes',
+    origins: ['38.8977,-77.0365,home', '38.886672,-77.094735,office'],
+    destinations: ['38.9072,-77.0369,capitol', '38.8814,-77.0916,pentagon'],
+    calculationType: DistanceCalculationType::Pairs
 );
 
 echo $job['id'];  // Job identifier
