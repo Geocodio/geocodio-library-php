@@ -1,6 +1,6 @@
 # geocod.io PHP library [![Latest Version][packagist-image]][packagist-url] [![Total Downloads][downloads-image]][downloads-url]
 
-> Library for performing forward and reverse address geocoding for addresses or coordinates in the US, Canada, Mexico, the UK, Australia and New Zealand.
+> Library for performing forward and reverse address geocoding for addresses or coordinates in the US, Canada, Mexico, the UK, Australia, and New Zealand.
 
 <!-- toc -->
 
