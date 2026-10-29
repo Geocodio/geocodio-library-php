@@ -1,6 +1,6 @@
 # geocod.io PHP library [![Latest Version][packagist-image]][packagist-url] [![Total Downloads][downloads-image]][downloads-url]
 
-> Library for performing forward and reverse address geocoding for addresses or coordinates in the US, Canada, Mexico and the UK.
+> Library for performing forward and reverse address geocoding for addresses or coordinates in the US, Canada, Mexico, the UK, Australia, and New Zealand.
 
 <!-- toc -->
 
@@ -104,6 +104,7 @@ $response = $geocoder->geocode([
     '1109 N Highland St, Arlington VA',
     '525 University Ave, Toronto, ON, Canada',
     '10 Downing St, London, United Kingdom',
+    '30 Pitt St, Sydney NSW 2000, Australia',
     '4410 S Highway 17 92, Casselberry FL',
     '15000 NE 24th Street, Redmond WA',
     '17015 Walnut Grove Drive, Morgan Hill CA'
@@ -121,9 +122,10 @@ $response = $geocoder->geocode([
     'MyId1' => '1109 N Highland St, Arlington VA',
     'MyId2' => '525 University Ave, Toronto, ON, Canada',
     'MyId3' => '10 Downing St, London, United Kingdom',
-    'MyId4' => '4410 S Highway 17 92, Casselberry FL',
-    'MyId5' => '15000 NE 24th Street, Redmond WA',
-    'MyId6' => '17015 Walnut Grove Drive, Morgan Hill CA'
+    'MyId4' => '30 Pitt St, Sydney NSW 2000, Australia',
+    'MyId5' => '4410 S Highway 17 92, Casselberry FL',
+    'MyId6' => '15000 NE 24th Street, Redmond WA',
+    'MyId7' => '17015 Walnut Grove Drive, Morgan Hill CA'
 ]);
 ```
 
@@ -184,6 +186,12 @@ $response = $geocoder->geocode([
         'city' => 'London',
         'postal_code' => 'SW1A 2AA',
         'country' => 'United Kingdom',
+    ],
+    [
+        'street' => '55 Cable St',
+        'city' => 'Wellington',
+        'postal_code' => '6011',
+        'country' => 'New Zealand',
     ],
 ]);
 ```
