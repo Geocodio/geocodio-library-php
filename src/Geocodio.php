@@ -76,7 +76,7 @@ class Geocodio
     /**
      * Current SDK version
      */
-    const SDK_VERSION = '3.3.0';
+    const SDK_VERSION = '3.4.1';
 
     /**
      * Timeout for single geocoding requests in milliseconds
@@ -516,6 +516,7 @@ class Geocodio
      * @param  int|null  $minDuration  Minimum duration filter (seconds, driving mode only)
      * @param  string|DistanceOrderBy  $orderBy  Sort by "distance" or "duration"
      * @param  string|DistanceSortOrder  $sortOrder  Sort order: "asc" or "desc"
+     * @param  string|null  $country  Country for address origins and destinations, as an ISO code or name. Inferred from the address when omitted
      */
     public function distance(
         Coordinate|string|array $origin,
@@ -528,7 +529,8 @@ class Geocodio
         ?float $minDistance = null,
         ?int $minDuration = null,
         string|DistanceOrderBy $orderBy = DistanceOrderBy::Distance,
-        string|DistanceSortOrder $sortOrder = DistanceSortOrder::Asc
+        string|DistanceSortOrder $sortOrder = DistanceSortOrder::Asc,
+        ?string $country = null
     ): array {
         $queryParams = [
             'origin' => $this->formatCoordinateAsString($origin),
@@ -539,6 +541,10 @@ class Geocodio
         // Format destinations as destinations[] array
         foreach ($destinations as $destination) {
             $queryParams['destinations'][] = $this->formatCoordinateAsString($destination);
+        }
+
+        if ($country !== null) {
+            $queryParams['country'] = $country;
         }
 
         // Add optional filter parameters
