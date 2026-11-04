@@ -2,9 +2,13 @@
 
 All notable changes to `geocodio-library-php` will be documented in this file
 
-## 3.4.0 - 2026-11-04
+## 3.4.1 - 2026-11-04
 
 - Added `country` option to `distance()`, for addresses whose country cannot be inferred from the text
+
+## 3.4.0 - 2026-11-04
+
+- README updates only. This version was published by mistake and does not include the `country` option
 
 ## 3.3.0 - 2026-10-12
 
