@@ -408,6 +408,12 @@ You can add custom identifiers to coordinates using the `lat,lng,id` format. The
 // ]
 ```
 
+Set `country` when you know it, so address origins and destinations resolve in that country:
+
+```php
+$response = $geocoder->distance('10 Downing Street, London', ['1 Princes St, Edinburgh'], country: 'GB');
+```
+
 #### Distance mode and units
 
 The SDK provides enums for type-safe distance configuration:
