@@ -2,6 +2,10 @@
 
 All notable changes to `geocodio-library-php` will be documented in this file
 
+## 3.4.0 - 2026-11-04
+
+- Added `country` option to `distance()`, for addresses whose country cannot be inferred from the text
+
 ## 3.3.0 - 2026-10-12
 
 - Added `calculationType` option to `distanceMatrix()` and `createDistanceMatrixJob()`, with a new `DistanceCalculationType` enum (`Matrix`, `Pairs`). `Pairs` measures origin i against destination i only, instead of every origin against every destination
