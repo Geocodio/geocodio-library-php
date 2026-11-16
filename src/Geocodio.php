@@ -254,11 +254,8 @@ class Geocodio
                 $options[RequestOptions::QUERY]['distance_min_duration'] = $distanceMinDuration;
             }
 
-            // Add sorting parameters when filters are used
-            if ($distanceMaxResults !== null || $distanceMaxDistance !== null || $distanceMaxDuration !== null || $distanceMinDistance !== null || $distanceMinDuration !== null) {
-                $options[RequestOptions::QUERY]['distance_order_by'] = $this->enumValue($distanceOrderBy);
-                $options[RequestOptions::QUERY]['distance_sort_order'] = $this->enumValue($distanceSortOrder);
-            }
+            $options[RequestOptions::QUERY]['distance_order_by'] = $this->enumValue($distanceOrderBy);
+            $options[RequestOptions::QUERY]['distance_sort_order'] = $this->enumValue($distanceSortOrder);
         }
 
         if ($this->isSingleQuery($query)) {
@@ -480,11 +477,8 @@ class Geocodio
                 $options[RequestOptions::QUERY]['distance_min_duration'] = $distanceMinDuration;
             }
 
-            // Add sorting parameters when filters are used
-            if ($distanceMaxResults !== null || $distanceMaxDistance !== null || $distanceMaxDuration !== null || $distanceMinDistance !== null || $distanceMinDuration !== null) {
-                $options[RequestOptions::QUERY]['distance_order_by'] = $this->enumValue($distanceOrderBy);
-                $options[RequestOptions::QUERY]['distance_sort_order'] = $this->enumValue($distanceSortOrder);
-            }
+            $options[RequestOptions::QUERY]['distance_order_by'] = $this->enumValue($distanceOrderBy);
+            $options[RequestOptions::QUERY]['distance_sort_order'] = $this->enumValue($distanceSortOrder);
         }
 
         if (is_string($query) || (is_array($query) && is_numeric($query[0]))) {

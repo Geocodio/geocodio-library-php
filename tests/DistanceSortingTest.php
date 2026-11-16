@@ -46,3 +46,42 @@ it('sends sorting parameters independently of filters', function (
         'strings' => ['duration', 'desc'],
         'enums' => [DistanceOrderBy::Duration, DistanceSortOrder::Desc],
     ]);
+
+it('sends geocoding distance sorting only when destinations are provided', function (
+    string $method,
+    array $destinations,
+    ?int $maxResults,
+    string|DistanceOrderBy $orderBy,
+    string|DistanceSortOrder $sortOrder
+): void {
+    $http = Client::create([new Response(200, [], '{}')]);
+    $geocoder = (new Geocodio($http->client()))->setApiKey('test-key');
+
+    $geocoder->$method(
+        '38,-78',
+        destinations: $destinations,
+        distanceMaxResults: $maxResults,
+        distanceOrderBy: $orderBy,
+        distanceSortOrder: $sortOrder,
+    );
+
+    parse_str($http->history()[0]['request']->getUri()->getQuery(), $params);
+
+    if ($destinations === []) {
+        expect($params)->not->toHaveKeys(['distance_order_by', 'distance_sort_order']);
+    } else {
+        expect($params)->toMatchArray([
+            'distance_order_by' => 'duration',
+            'distance_sort_order' => 'desc',
+        ]);
+    }
+})->with(['geocode', 'reverse'])
+    ->with([
+        'without destinations' => [[]],
+        'with destinations' => [['39,-77']],
+    ])
+    ->with([null, 2])
+    ->with([
+        'strings' => ['duration', 'desc'],
+        'enums' => [DistanceOrderBy::Duration, DistanceSortOrder::Desc],
+    ]);
