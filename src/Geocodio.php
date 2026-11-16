@@ -568,11 +568,9 @@ class Geocodio
             $queryParams['min_duration'] = $minDuration;
         }
 
-        // Add sorting parameters when filters are used
-        if ($maxResults !== null || $maxDistance !== null || $maxDuration !== null || $minDistance !== null || $minDuration !== null) {
-            $queryParams['order_by'] = $this->enumValue($orderBy);
-            $queryParams['sort_order'] = $this->enumValue($sortOrder);
-        }
+        // Add sorting parameters independently of filters
+        $queryParams['order_by'] = $this->enumValue($orderBy);
+        $queryParams['sort_order'] = $this->enumValue($sortOrder);
 
         $options = [
             RequestOptions::QUERY => $queryParams,
@@ -657,11 +655,9 @@ class Geocodio
             $payload['min_duration'] = $minDuration;
         }
 
-        // Add sorting parameters when filters are used
-        if ($maxResults !== null || $maxDistance !== null || $maxDuration !== null || $minDistance !== null || $minDuration !== null) {
-            $payload['order_by'] = $this->enumValue($orderBy);
-            $payload['sort_order'] = $this->enumValue($sortOrder);
-        }
+        // Add sorting parameters independently of filters
+        $payload['order_by'] = $this->enumValue($orderBy);
+        $payload['sort_order'] = $this->enumValue($sortOrder);
 
         $options = [
             RequestOptions::JSON => $payload,
@@ -751,11 +747,9 @@ class Geocodio
             $payload['min_duration'] = $minDuration;
         }
 
-        // Add sorting parameters when filters are used
-        if ($maxResults !== null || $maxDistance !== null || $maxDuration !== null || $minDistance !== null || $minDuration !== null) {
-            $payload['order_by'] = $this->enumValue($orderBy);
-            $payload['sort_order'] = $this->enumValue($sortOrder);
-        }
+        // Add sorting parameters independently of filters
+        $payload['order_by'] = $this->enumValue($orderBy);
+        $payload['sort_order'] = $this->enumValue($sortOrder);
 
         if ($callbackUrl !== null) {
             $payload['callback'] = $callbackUrl;
