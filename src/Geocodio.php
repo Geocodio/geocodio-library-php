@@ -76,7 +76,7 @@ class Geocodio
     /**
      * Current SDK version
      */
-    const SDK_VERSION = '3.4.1';
+    const SDK_VERSION = '3.4.2';
 
     /**
      * Timeout for single geocoding requests in milliseconds
@@ -562,7 +562,6 @@ class Geocodio
             $queryParams['min_duration'] = $minDuration;
         }
 
-        // Add sorting parameters independently of filters
         $queryParams['order_by'] = $this->enumValue($orderBy);
         $queryParams['sort_order'] = $this->enumValue($sortOrder);
 
@@ -649,7 +648,6 @@ class Geocodio
             $payload['min_duration'] = $minDuration;
         }
 
-        // Add sorting parameters independently of filters
         $payload['order_by'] = $this->enumValue($orderBy);
         $payload['sort_order'] = $this->enumValue($sortOrder);
 
@@ -741,7 +739,6 @@ class Geocodio
             $payload['min_duration'] = $minDuration;
         }
 
-        // Add sorting parameters independently of filters
         $payload['order_by'] = $this->enumValue($orderBy);
         $payload['sort_order'] = $this->enumValue($sortOrder);
 

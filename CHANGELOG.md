@@ -2,6 +2,10 @@
 
 All notable changes to `geocodio-library-php` will be documented in this file
 
+## 3.4.2 - 2026-11-17
+
+- Fixed `orderBy` and `sortOrder` (and the `distanceOrderBy`/`distanceSortOrder` options on `geocode()` and `reverse()`) being ignored unless a max/min filter was also set
+
 ## 3.4.1 - 2026-11-04
 
 - Added `country` option to `distance()`, for addresses whose country cannot be inferred from the text

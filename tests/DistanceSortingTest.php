@@ -31,7 +31,7 @@ it('sends sorting parameters independently of filters', function (
 
     $request = $http->history()[0]['request'];
     if ($method === 'distance') {
-        parse_str($request->getUri()->getQuery(), $params);
+        parse_str((string) $request->getUri()->getQuery(), $params);
     } else {
         $params = json_decode((string) $request->getBody(), true);
     }
@@ -65,7 +65,7 @@ it('sends geocoding distance sorting only when destinations are provided', funct
         distanceSortOrder: $sortOrder,
     );
 
-    parse_str($http->history()[0]['request']->getUri()->getQuery(), $params);
+    parse_str((string) $http->history()[0]['request']->getUri()->getQuery(), $params);
 
     if ($destinations === []) {
         expect($params)->not->toHaveKeys(['distance_order_by', 'distance_sort_order']);
