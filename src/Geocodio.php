@@ -813,7 +813,7 @@ class Geocodio
             [
                 RequestOptions::STREAM => true,
             ],
-            $this->listsTimeoutMs
+            $this->listDownloadTimeoutMs
         );
 
         $body = $response->getBody();

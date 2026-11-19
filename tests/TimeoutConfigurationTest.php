@@ -172,3 +172,29 @@ it('converts milliseconds to seconds for Guzzle', function (): void {
 
     expect($capturedOptions[RequestOptions::TIMEOUT])->toEqual(2.5);
 });
+
+it('applies the list download timeout to distance matrix job downloads', function (): void {
+    $capturedOptions = null;
+
+    $mockHandler = new MockHandler([
+        new Response(200, [], 'a,b,c'),
+    ]);
+
+    $handlerStack = HandlerStack::create($mockHandler);
+    $handlerStack->push(Middleware::tap(function ($request, $options) use (&$capturedOptions): void {
+        $capturedOptions = $options;
+    }));
+
+    $client = new Client(['handler' => $handlerStack]);
+    $geocodio = new Geocodio($client);
+
+    $geocodio->setApiKey('test-key')
+        ->setListsTimeoutMs(60000)
+        ->setListDownloadTimeoutMs(900000); // 15 minutes
+
+    $path = tempnam(sys_get_temp_dir(), 'dm');
+    $geocodio->downloadDistanceMatrixJob('job-1', $path);
+    unlink($path);
+
+    expect($capturedOptions[RequestOptions::TIMEOUT])->toEqual(900);
+});
