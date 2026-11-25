@@ -375,18 +375,27 @@ class Geocodio
             $this->listDownloadTimeoutMs
         );
 
+        $this->writeDownload($response, $filePath);
+    }
+
+    private function writeDownload(ResponseInterface $response, string $filePath): void
+    {
         $body = $response->getBody();
 
         if (! $fileHandle = fopen($filePath, 'w')) {
             throw new Exception("Unable to open file for writing: {$filePath}");
         }
 
-        while (! $body->eof()) {
-            $chunk = $body->read(8192);
-            fwrite($fileHandle, $chunk);
+        try {
+            while (! $body->eof()) {
+                $chunk = $body->read(8192);
+                if (@fwrite($fileHandle, $chunk) !== strlen($chunk)) {
+                    throw new Exception("Unable to write to file: {$filePath}");
+                }
+            }
+        } finally {
+            fclose($fileHandle);
         }
-
-        fclose($fileHandle);
     }
 
     /**
@@ -816,18 +825,7 @@ class Geocodio
             $this->listsTimeoutMs
         );
 
-        $body = $response->getBody();
-
-        if (! $fileHandle = fopen($filePath, 'w')) {
-            throw new Exception("Unable to open file for writing: {$filePath}");
-        }
-
-        while (! $body->eof()) {
-            $chunk = $body->read(8192);
-            fwrite($fileHandle, $chunk);
-        }
-
-        fclose($fileHandle);
+        $this->writeDownload($response, $filePath);
     }
 
     /**
