@@ -444,7 +444,6 @@ class Geocodio
     ): array {
         $options = [
             RequestOptions::QUERY => [
-                'q' => $this->formattedReverseQuery($query),
                 'fields' => implode(',', $fields),
                 'limit' => $limit,
                 'format' => $format,
@@ -482,6 +481,8 @@ class Geocodio
         }
 
         if (is_string($query) || (is_array($query) && is_numeric($query[0]))) {
+            $options[RequestOptions::QUERY]['q'] = $this->formattedReverseQuery($query);
+
             $response = $this->sendRequest('GET', 'reverse', $options, $this->singleTimeoutMs);
         } else {
             $options[RequestOptions::JSON] = array_map(fn ($q) => $this->formattedReverseQuery($q), $query);
